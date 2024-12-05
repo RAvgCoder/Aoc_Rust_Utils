@@ -293,6 +293,7 @@ pub mod iterators {
     /// ```
     /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
     /// use aoc_utils_rust::coordinate_system::Coordinate;
+    /// use aoc_utils_rust::grid::Grid;
     ///
     /// let grid = UnsizedGrid::new(vec![vec![1, 2, 3], vec![4, 5, 6]]);
     /// let mut row_iter = grid.iter().next().unwrap();
@@ -333,6 +334,7 @@ pub mod iterators {
         ///
         /// ```
         /// use aoc_utils_rust::coordinate_system::Coordinate;
+        /// use aoc_utils_rust::grid::Grid;
         /// use aoc_utils_rust::grid::iterators::RowIter;
         /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
         ///
@@ -366,6 +368,7 @@ pub mod iterators {
         /// ```
         /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
         /// use aoc_utils_rust::coordinate_system::Coordinate;
+        /// use aoc_utils_rust::grid::Grid;
         ///
         /// let grid = UnsizedGrid::new(vec![vec![1, 2, 3], vec![4, 5, 6]]);
         /// let mut row_iter = grid.iter().next().unwrap();

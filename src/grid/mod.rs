@@ -1,7 +1,7 @@
 pub use crate::coordinate_system::Coordinate;
 pub use crate::grid::iterators::GridIter;
 
-mod grid_slice;
+pub mod grid_slice;
 pub mod sized_grid;
 pub mod unsized_grid;
 
@@ -39,7 +39,7 @@ pub trait Grid<T> {
     /// # Returns
     ///
     /// A reference to the row.
-    fn get_row(&self, row: usize) -> &[T];
+    fn get_row(&self, row: usize) -> Option<&[T]>;
 
     /// Returns a reference to the element at the specified coordinate, if valid.
     ///
@@ -112,7 +112,6 @@ pub trait Grid<T> {
         accumulator
     }
 }
-
 
 /// The `GridMut` trait extends the `Grid` trait to provide mutable access to the grid elements.
 ///
@@ -196,7 +195,7 @@ pub mod iterators {
     /// let first_element = first_row.next().unwrap();
     /// assert_eq!(first_element, (Coordinate::new(0, 0), &1));
     /// ```
-    #[derive(Debug)]
+    #[derive(Debug, Clone, Eq, PartialEq)]
     pub struct GridIter<'a, G, T>
     where
         G: Grid<T>,
@@ -204,6 +203,8 @@ pub mod iterators {
     {
         grid: &'a G,
         row: usize,
+        // Should never be public
+        internal_row_iter_count: usize,
         _marker: PhantomData<&'a T>,
     }
 
@@ -229,16 +230,17 @@ pub mod iterators {
         /// use aoc_utils_rust::coordinate_system::Coordinate;
         ///
         /// let grid = SizedGrid::<i32, 2, 3>::new([[1, 2, 3], [4, 5, 6]]);
-        /// let mut iter = GridIter::new(&grid);    // Either is ok
+        /// let mut iter = grid.iter();
         /// let mut first_row = iter.next().unwrap();
         /// let first_element = first_row.next().unwrap();
         /// assert_eq!(first_element, (Coordinate::new(0, 0), &1));
         /// ```
         #[inline(always)]
-        pub fn new(grid: &'a G) -> Self {
+        pub(crate) fn new(grid: &'a G, start_row: usize) -> Self {
             Self {
                 grid,
-                row: 0,
+                row: start_row,
+                internal_row_iter_count: 0, // Always starts at zero
                 _marker: PhantomData,
             }
         }
@@ -264,20 +266,19 @@ pub mod iterators {
         /// use aoc_utils_rust::coordinate_system::Coordinate;
         ///
         /// let grid = UnsizedGrid::new(vec![vec![1, 2, 3], vec![4, 5, 6]]);
-        /// let mut iter = GridIter::new(&grid);
+        /// let mut iter = grid.iter();
         /// let mut first_row = iter.next().unwrap();
         /// let first_element = first_row.next().unwrap();
         /// assert_eq!(first_element, (Coordinate::new(0, 0), &1));
         /// ```
         #[inline(always)]
         fn next(&mut self) -> Option<Self::Item> {
-            if self.row < self.grid.num_rows() {
-                let row_iter = RowIter::new(self.grid.get_row(self.row), self.row, 0);
+            self.grid.get_row(self.row).map(|row| {
+                let row_iter = RowIter::new(row, self.internal_row_iter_count, 0);
+                self.internal_row_iter_count += 1;
                 self.row += 1;
-                Some(row_iter)
-            } else {
-                None
-            }
+                row_iter
+            })
         }
     }
 
@@ -300,7 +301,7 @@ pub mod iterators {
     /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 2), &3)));
     /// assert_eq!(row_iter.next(), None);
     /// ```
-    #[derive(Debug)]
+    #[derive(Debug, Clone, Eq, PartialEq)]
     pub struct RowIter<'a, T>
     where
         T: 'a,
@@ -405,6 +406,7 @@ pub mod iterators {
     /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 2), &mut 3)));
     /// assert_eq!(row_iter.next(), None);
     /// ```
+    #[derive(Debug, Eq, PartialEq)]
     pub struct RowIterMut<'a, T>
     where
         T: 'a,

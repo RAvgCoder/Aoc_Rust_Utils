@@ -376,7 +376,7 @@ impl<N, E> Graph<N, E> {
         };
         self.nodes.push(Node {
             data,
-            node_index: node_index,
+            node_index,
             first_edge: None,
         });
 
@@ -738,7 +738,6 @@ where
         graph
     }
 }
-
 
 impl<N, E, const S: usize> From<[(N, N, EdgeRelationship<E>); S]> for Graph<N, E>
 where

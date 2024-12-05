@@ -2,7 +2,6 @@ use std::fmt;
 use std::ops::{Add, AddAssign};
 use std::str::FromStr;
 
-
 /// # Coordinate System
 ///
 /// This module provides the `Coordinate` struct for representing coordinates in a 2D grid,
@@ -238,7 +237,6 @@ impl fmt::Debug for Coordinate {
         write!(f, "Coordinate({}, {})", self.i, self.j)
     }
 }
-
 
 impl FromStr for Coordinate {
     type Err = String;

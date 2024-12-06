@@ -61,7 +61,10 @@ pub trait Grid<T> {
     /// # Returns
     ///
     /// `true` if the coordinate is valid, `false` otherwise.
-    fn is_valid_coordinate(&self, coordinate: &Coordinate) -> bool;
+    fn is_valid_coordinate(&self, coordinate: &Coordinate) -> bool {
+        (0..self.num_rows()).contains(&(coordinate.i as usize))
+            && (0..self.num_cols()).contains(&(coordinate.j as usize))
+    }
 
     /// Returns an iterator over the elements of the grid.
     ///

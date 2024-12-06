@@ -9,58 +9,6 @@ use std::time::{Duration, Instant};
 pub struct Utils;
 
 impl Utils {
-    /// Executes a function with a list of data and measures its execution time.
-    ///
-    /// # Arguments
-    ///
-    /// * `day_func_part_to_run` - The function to be executed.
-    /// * `part_num` - The part number of the puzzle.
-    /// * `day_num` - The day number of the puzzle.
-    /// * `expected` - The expected result for assertion.
-    ///
-    /// # Type Parameters
-    ///
-    /// * `T` - The type of the elements in the input vector. Must implement the `FromStr` trait.
-    /// * `F` - The function type that takes a vector of `T` and returns a result of type `R`.
-    /// * `R` - The type of the result returned by the function. Must implement the `Debug` and `PartialEq` traits.
-    ///
-    /// # Panics
-    ///
-    /// This function will panic if the expected result does not match the actual result.
-    ///
-    /// # Examples
-    ///
-    /// ```example
-    /// use self::aoc_utils_rust::day_setup::Utils;
-    ///
-    /// fn example_func(input: Vec<i32>) -> i32 {
-    ///     input.iter().sum()
-    /// }
-    ///
-    /// Utils::run_part(example_func, 1, 1, Some(6));
-    /// ```
-    pub fn run_part<T, F, R>(
-        day_func_part_to_run: F,
-        part_num: i32,
-        day_num: u8,
-        expected: Option<R>,
-    ) where
-        F: FnOnce(Vec<T>) -> R,
-        R: Debug + PartialEq,
-        T: std::str::FromStr,
-        T::Err: Debug,
-    {
-        println!(
-            "//------------[Day {} Part {}]------------\\\\",
-            day_num, part_num
-        );
-
-        let read_file = Self::read_file::<T>(day_num);
-
-        let (elapsed_time, result) = Self::time_it(move || day_func_part_to_run(read_file));
-
-        Self::log_results(expected, result, elapsed_time);
-    }
 
     /// Executes a function with a single input and measures its execution time.
     ///
@@ -294,8 +242,8 @@ use aoc_utils_rust::day_setup::Utils;
 ///   If the result of any part does not match the expected value.
 pub fn run() {{
     // run_part(day_func_part_to_run, part_num, day_num)
-    Utils::run_part(part1, 1, 0, None);
-    Utils::run_part(part2, 2, 0, None);
+    Utils::run_part_single(part1, 1, 0, None);
+    Utils::run_part_single(part2, 2, 0, None);
 }}
 
 fn part1(input: Vec<String>) -> u64 {{

@@ -1,4 +1,4 @@
-pub use crate::coordinate_system::Coordinate;
+use crate::coordinate_system::Coordinate;
 pub use crate::grid::iterators::GridIter;
 
 pub mod grid_slice;

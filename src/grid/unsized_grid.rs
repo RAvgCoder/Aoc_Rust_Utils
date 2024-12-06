@@ -15,7 +15,8 @@ use std::slice::IterMut;
 /// # Examples
 ///
 /// ```
-/// use aoc_utils_rust::grid::{Coordinate, Grid, GridMut};
+/// use aoc_utils_rust::coordinate_system::Coordinate;
+/// use aoc_utils_rust::grid::{Grid, GridMut};
 /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
 ///
 /// // Create a new grid with specified rows and columns, initializing all elements to 0

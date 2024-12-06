@@ -283,7 +283,7 @@ Found: {:?}
         writeln!(
             file,
             r#"
-use crate::utils::day_setup::Utils;
+use aoc_utils_rust::day_setup::Utils;
 
 /// Runs the Advent of Code puzzles for [Current Day](https://adventofcode.com/20{}/day/{}).
 ///

@@ -9,7 +9,6 @@ use std::time::{Duration, Instant};
 pub struct Utils;
 
 impl Utils {
-
     /// Executes a function with a single input and measures its execution time.
     ///
     /// # Arguments

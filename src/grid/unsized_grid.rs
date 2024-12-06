@@ -317,36 +317,6 @@ impl<T> Grid<T> for UnsizedGrid<T> {
         }
     }
 
-    /// Checks if the specified coordinate is valid within the grid.
-    ///
-    /// # Arguments
-    ///
-    /// * `coordinate` - The coordinate to check.
-    ///
-    /// # Returns
-    ///
-    /// `true` if the coordinate is valid, `false` otherwise.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
-    /// use aoc_utils_rust::coordinate_system::Coordinate;
-    /// use aoc_utils_rust::grid::Grid;
-    ///
-    /// let grid = UnsizedGrid::new(vec![vec![1, 2, 3], vec![4, 5, 6]]);
-    /// let valid_coordinate = Coordinate::new(1, 2);
-    /// let invalid_coordinate = Coordinate::new(2, 3);
-    ///
-    /// assert!(grid.is_valid_coordinate(&valid_coordinate));
-    /// assert!(!grid.is_valid_coordinate(&invalid_coordinate));
-    /// ```
-    #[inline(always)]
-    fn is_valid_coordinate(&self, coordinate: &Coordinate) -> bool {
-        (0..self.num_rows()).contains(&(coordinate.i as usize))
-            && (0..self.num_cols()).contains(&(coordinate.j as usize))
-    }
-
     /// Returns an iterator over the elements of the grid.
     ///
     /// # Type Parameters
@@ -492,7 +462,7 @@ impl<'a, T> GridIterMut<'a, T>
 where
     T: 'a,
 {
-    pub(super) fn new(grid: &'a mut UnsizedGrid<T>) -> Self {
+    pub(self) fn new(grid: &'a mut UnsizedGrid<T>) -> Self {
         let enumerated_rows: Enumerate<IterMut<Box<[T]>>> = grid.matrix.iter_mut().enumerate();
         Self {
             grid_rows: enumerated_rows,

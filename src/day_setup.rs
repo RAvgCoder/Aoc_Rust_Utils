@@ -39,7 +39,7 @@ impl Utils {
     ///
     /// Utils::run_part_single(example_func, 1, 1, Some(3));
     /// ```
-    pub fn run_part_single<T, F, R>(
+    pub fn run_part<T, F, R>(
         day_func_part_to_run: F,
         part_num: i32,
         day_num: u8,
@@ -202,7 +202,7 @@ Found: {:?}
     ///
     /// # Panics
     /// If the file already exists or if it cannot be created.
-    pub fn new_day(day_num: i32, year: i16) {
+    pub fn new_day(day_num: i32, year: u8) {
         let src_file_path = Self::get_file_path()
             .join(format!("day{}", day_num))
             .with_extension("rs");

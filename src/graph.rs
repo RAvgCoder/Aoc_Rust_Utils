@@ -546,7 +546,7 @@ impl<N, E> Graph<N, E> {
     ///
     /// # Examples
     ///
-    /// ```internal_test
+    /// ```ignore
     /// use aoc_utils_rust::graph::{Graph, EdgeRelationship};
     ///
     /// let mut graph = Graph::new();
@@ -554,29 +554,26 @@ impl<N, E> Graph<N, E> {
     /// let node_b = graph.add_node("B");
     /// let node_c = graph.add_node("C");
     /// let node_d = graph.add_node("D");
-    /// let node_e = graph.add_node("E");
     ///
     /// graph.add_edge(node_a, node_b, EdgeRelationship::AToB(())).unwrap();
+    /// graph.add_edge(node_a, node_c, EdgeRelationship::AToB(())).unwrap();
     /// graph.add_edge(node_b, node_c, EdgeRelationship::AToB(())).unwrap();
     /// graph.add_edge(node_c, node_d, EdgeRelationship::AToB(())).unwrap();
-    /// graph.add_edge(node_d, node_e, EdgeRelationship::AToB(())).unwrap();
-    /// graph.add_edge(node_e, node_a, EdgeRelationship::AToB(())).unwrap();
     ///
     /// let in_degrees = graph.get_in_degrees();
-    /// assert_eq!(in_degrees.len(), 5);
-    /// assert_eq!(in_degrees[0], (graph.find_node_index(|e| *e == "A").unwrap(), 1));
-    /// assert_eq!(in_degrees[1], (graph.find_node_index(|e| *e == "B").unwrap(), 1));
-    /// assert_eq!(in_degrees[2], (graph.find_node_index(|e| *e == "C").unwrap(), 1));
-    /// assert_eq!(in_degrees[3], (graph.find_node_index(|e| *e == "D").unwrap(), 1));
-    /// assert_eq!(in_degrees[4], (graph.find_node_index(|e| *e == "E").unwrap(), 1));
+    /// assert_eq!(in_degrees.len(), 4);
+    /// assert_eq!(in_degrees[0], (node_a, None));
+    /// assert_eq!(in_degrees[1], (node_b, Some(1)));
+    /// assert_eq!(in_degrees[2], (node_c, Some(2)));
+    /// assert_eq!(in_degrees[3], (node_d, Some(1)));
     /// ```
-    fn get_in_degrees(&self) -> Vec<(NodePtr, u32)> {
-        let mut in_degrees = vec![(NodePtr { idx: 0 }, 0); self.nodes.len()];
+    fn get_in_degrees(&self) -> Vec<(NodePtr, Option<u32>)> {
+        let mut in_degrees = vec![(NodePtr { idx: 0 }, None); self.nodes.len()];
         // FIXME: If removal is ever implemented, this will need to be updated to handle the removal of nodes.
-        for node in &self.nodes {
+        for (idx, node) in self.nodes.iter().enumerate() {
+            in_degrees[node.node_index.idx].0 = NodePtr { idx };
             for (neighbour, _) in self.neighbours_iter(node.node_index) {
-                in_degrees[neighbour.idx].1 += 1;
-                in_degrees[neighbour.idx].0 = neighbour;
+                *in_degrees[neighbour.idx].1.get_or_insert(0) += 1;
             }
         }
         in_degrees
@@ -631,17 +628,25 @@ impl<N, E> Graph<N, E> {
     ///
     /// ### Without cycles
     /// ```
-    /// use aoc_utils_rust::graph::{Graph, NodePtr, EdgeRelationship};
+    ///  use std::collections::HashMap;
+    ///  use aoc_utils_rust::graph::Graph;
     ///
-    /// let mut graph = Graph::new();
-    /// let node_a = graph.add_node("A");
-    /// let node_b = graph.add_node("B");
-    /// let node_c = graph.add_node("C");
-    /// graph.add_edge(node_a, node_b, EdgeRelationship::AToB(())).unwrap();
-    /// graph.add_edge(node_b, node_c, EdgeRelationship::AToB(())).unwrap();
+    ///  let mut input = HashMap::<i32, Vec<i32>>::new();
+    ///  input.insert(1, vec![2, 3]);
+    ///  input.insert(2, vec![3]);
+    ///  input.insert(3, vec![4]);
+    ///  input.insert(4, vec![]);
     ///
-    /// let sorted = graph.top_sort().unwrap();
-    /// assert_eq!(sorted, vec![node_a, node_b, node_c]);
+    ///  let mut graph = Graph::<_, ()>::from(input);
+    ///
+    ///  let topologically_sorted = graph
+    ///         .topological_sort()
+    ///         .expect("This graph does not contain cycles and is therefore topologically sortable.")
+    ///         .iter()
+    ///         .map(|node| *graph.get(*node).expect("Node should exist as it was returned by topological_sort."))
+    ///         .collect::<Vec<i32>>();
+    /// 
+    ///  assert_eq!(topologically_sorted, vec![1, 2, 3, 4]);
     /// ```
     ///
     /// ### With cycles
@@ -656,10 +661,10 @@ impl<N, E> Graph<N, E> {
     /// graph.add_edge(node_b, node_c, EdgeRelationship::AToB(())).unwrap();
     /// graph.add_edge(node_c, node_a, EdgeRelationship::AToB(())).unwrap();
     ///
-    /// let sorted = graph.top_sort();
+    /// let sorted = graph.topological_sort();
     /// assert!(sorted.is_err());
     /// ```
-    pub fn top_sort(&self) -> Result<Vec<NodePtr>, ()> {
+    pub fn topological_sort(&self) -> Result<Vec<NodePtr>, ()> {
         let mut result = Vec::with_capacity(self.nodes.len());
         let mut zero_in_degree_nodes = Vec::new();
 
@@ -667,7 +672,7 @@ impl<N, E> Graph<N, E> {
 
         // Collect nodes with zero in-degree
         for (node_ptr, in_degree) in in_degrees.iter() {
-            if *in_degree == 0 {
+            if *in_degree == None {
                 zero_in_degree_nodes.push(*node_ptr);
             }
         }
@@ -677,10 +682,12 @@ impl<N, E> Graph<N, E> {
             result.push(node);
 
             for (neighbour, _) in self.neighbours_iter(node) {
-                in_degrees[neighbour.idx].1 -= 1;
-                if in_degrees[neighbour.idx].1 == 0 {
-                    zero_in_degree_nodes.push(neighbour);
-                }
+                in_degrees[neighbour.idx].1.as_mut().map(|degree| {
+                    *degree -= 1;
+                    if *degree == 0 {
+                        zero_in_degree_nodes.push(neighbour);
+                    }
+                });
             }
         }
 
@@ -798,8 +805,8 @@ where
                     let edge = &self.edges[edge_index.idx];
                     writeln!(
                         f,
-                        "\t\tEdge: '{:?}' ->  To: '{:?}'",
-                        edge.data, self.nodes[edge.to.idx].data
+                        "\t\tEdge: '{:?}' ->  Node: ({:?}) (Data: '{:?}')",
+                        edge.data, edge.to, self.nodes[edge.to.idx].data
                     )?;
                     curr_edge = edge.next_edge.clone();
                 }
@@ -850,6 +857,43 @@ where
         let mut graph = Graph::with_capacity(hash_map.len());
         for (from, to) in hash_map {
             graph.add_edge_by_data(from, to, EdgeRelationship::AToB(E::default()));
+        }
+        graph
+    }
+}
+
+impl<N, E> From<HashMap<N, Vec<N>>> for Graph<N, E>
+where
+    N: PartialEq + Eq,
+    E: Default,
+{
+    /// Creates a graph from a `HashMap` where keys and values represent nodes.
+    ///
+    /// # Note
+    /// Relationships are always from key to value.
+    ///
+    /// # Arguments
+    ///
+    /// * `hash_map` - The `HashMap` to convert into a graph.
+    ///
+    /// # Returns
+    ///
+    /// A new instance of `Graph`.
+    fn from(hash_map: HashMap<N, Vec<N>>) -> Self {
+        let mut graph = Graph::with_capacity(hash_map.len());
+        for (from, to_many) in hash_map {
+            let from = graph
+                .find_node_index(|e| *e == from)
+                .unwrap_or_else(|| graph.add_node(from));
+
+            for to in to_many {
+                let to = graph
+                    .find_node_index(|e| *e == to)
+                    .unwrap_or_else(|| graph.add_node(to));
+                graph
+                    .add_edge(from, to, EdgeRelationship::AToB(E::default()))
+                    .unwrap();
+            }
         }
         graph
     }

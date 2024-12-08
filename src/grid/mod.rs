@@ -16,7 +16,7 @@ pub mod unsized_grid;
 /// use self::aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
 /// use self::aoc_utils_rust::coordinate_system::Coordinate;
 ///
-/// let grid = UnsizedGrid::new(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+/// let grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
 /// assert_eq!(grid.num_rows(), 2);
 /// assert_eq!(grid.num_cols(), 3);
 /// assert_eq!(grid.get(&Coordinate::new(0, 1)), Some(&2));
@@ -268,7 +268,7 @@ pub mod iterators {
         /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
         /// use aoc_utils_rust::coordinate_system::Coordinate;
         ///
-        /// let grid = UnsizedGrid::new(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+        /// let grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
         /// let mut iter = grid.iter();
         /// let mut first_row = iter.next().unwrap();
         /// let first_element = first_row.next().unwrap();
@@ -298,7 +298,7 @@ pub mod iterators {
     /// use aoc_utils_rust::coordinate_system::Coordinate;
     /// use aoc_utils_rust::grid::Grid;
     ///
-    /// let grid = UnsizedGrid::new(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+    /// let grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
     /// let mut row_iter = grid.iter().next().unwrap();
     /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 0), &1)));
     /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 1), &2)));
@@ -342,7 +342,7 @@ pub mod iterators {
         /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
         ///
         ///
-        /// let grid = UnsizedGrid::new(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+        /// let grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
         /// let mut row_iter = grid.iter().next().unwrap();
         /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 0), &1)));
         /// ```
@@ -373,7 +373,7 @@ pub mod iterators {
         /// use aoc_utils_rust::coordinate_system::Coordinate;
         /// use aoc_utils_rust::grid::Grid;
         ///
-        /// let grid = UnsizedGrid::new(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+        /// let grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
         /// let mut row_iter = grid.iter().next().unwrap();
         /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 0), &1)));
         /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 1), &2)));
@@ -404,7 +404,7 @@ pub mod iterators {
     /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
     /// use aoc_utils_rust::coordinate_system::Coordinate;
     ///
-    /// let mut grid = UnsizedGrid::new(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+    /// let mut grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
     /// let mut row_iter = grid.iter_mut().next().unwrap();
     ///
     /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 0), &mut 1)));
@@ -448,7 +448,7 @@ pub mod iterators {
         /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
         /// use aoc_utils_rust::coordinate_system::Coordinate;
         ///
-        /// let mut grid = UnsizedGrid::new(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+        /// let mut grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
         /// let mut row_iter = grid.iter_mut().next().unwrap();
         ///
         /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 0), &mut 1)));

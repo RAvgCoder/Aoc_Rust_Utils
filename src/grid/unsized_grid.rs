@@ -20,10 +20,10 @@ use std::slice::IterMut;
 /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
 ///
 /// // Create a new grid with specified rows and columns, initializing all elements to 0
-/// let grid = UnsizedGrid::new_with_size(2, 3, 0);
+/// let grid = UnsizedGrid::new(2, 3, 0);
 ///
 /// // Create a new grid from a 2D vector
-/// let grid = UnsizedGrid::new(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+/// let grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
 ///
 /// // Get the number of rows and columns
 /// assert_eq!(grid.num_rows(), 2);
@@ -34,7 +34,7 @@ use std::slice::IterMut;
 /// assert_eq!(grid.get(&coordinate), Some(&2));
 ///
 /// // Get a mutable reference to an element in the grid
-/// let mut grid = UnsizedGrid::new(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+/// let mut grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
 /// let coordinate = Coordinate::new(1, 2);
 /// if let Some(value) = grid.get_mut(&coordinate) {
 ///     *value = 10;
@@ -69,13 +69,13 @@ impl<T> UnsizedGrid<T> {
     /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
     ///
     /// let grid = vec![vec![1, 2, 3], vec![4, 5, 6]];
-    /// let unsized_grid = UnsizedGrid::new(grid);
+    /// let unsized_grid = UnsizedGrid::from_vec(grid);
     ///
     /// assert_eq!(unsized_grid.num_rows(), 2);
     /// assert_eq!(unsized_grid.num_cols(), 3);
     /// assert_eq!(unsized_grid.get(&Coordinate::new(0, 1)), Some(&2));
     /// ```
-    pub fn new(grid: Vec<Vec<T>>) -> Self {
+    pub fn from_vec(grid: Vec<Vec<T>>) -> Self {
         Self::from_box(
             grid.into_iter()
                 .map(|row| row.into_boxed_slice())
@@ -108,20 +108,20 @@ impl<T> UnsizedGrid<T> {
     /// use aoc_utils_rust::grid::Grid;
     /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
     ///
-    /// let grid = UnsizedGrid::new_with_size(2, 3, 0);
+    /// let grid = UnsizedGrid::new(2, 3, 0);
     ///
     /// assert_eq!(grid.num_rows(), 2);
     /// assert_eq!(grid.num_cols(), 3);
     /// assert_eq!(grid.get(&Coordinate::new(0, 1)), Some(&0));
     /// ```
     #[inline]
-    pub fn new_with_size(rows: usize, cols: usize, default: T) -> Self
+    pub fn new(rows: usize, cols: usize, default: T) -> Self
     where
         T: Clone,
     {
         // Create a single row filled with the default value, to avoid multiple clones
         // Clone the row for each additional row needed
-        Self::new(vec![vec![default; cols]; rows])
+        Self::from_vec(vec![vec![default; cols]; rows])
     }
 
     /// Creates a new `UnsizedGrid` from a boxed 2D slice.
@@ -171,7 +171,7 @@ impl<T> UnsizedGrid<T> {
     /// use aoc_utils_rust::grid::GridMut;
     /// use aoc_utils_rust::coordinate_system::Coordinate;
     ///
-    /// let mut grid = UnsizedGrid::new(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+    /// let mut grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
     /// let mut iter = grid.iter_mut();
     ///
     /// let mut row_iter = iter.next().unwrap();
@@ -229,7 +229,7 @@ impl<T> Grid<T> for UnsizedGrid<T> {
     /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
     /// use aoc_utils_rust::grid::Grid;
     ///
-    /// let grid = UnsizedGrid::new(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+    /// let grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
     /// assert_eq!(grid.num_rows(), 2);
     /// ```
     #[inline(always)]
@@ -249,7 +249,7 @@ impl<T> Grid<T> for UnsizedGrid<T> {
     /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
     /// use aoc_utils_rust::grid::Grid;
     ///
-    /// let grid = UnsizedGrid::new(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+    /// let grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
     /// assert_eq!(grid.num_cols(), 3);
     /// ```
     #[inline(always)]
@@ -273,7 +273,7 @@ impl<T> Grid<T> for UnsizedGrid<T> {
     /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
     /// use aoc_utils_rust::grid::Grid;
     ///
-    /// let grid = UnsizedGrid::new(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+    /// let grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
     /// let row = grid.get_row(1).unwrap();
     /// assert_eq!(row, &[4, 5, 6]);
     ///
@@ -302,7 +302,7 @@ impl<T> Grid<T> for UnsizedGrid<T> {
     /// use aoc_utils_rust::grid::Grid;
     /// use aoc_utils_rust::coordinate_system::Coordinate;
     ///
-    /// let grid = UnsizedGrid::new(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+    /// let grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
     /// let coordinate = Coordinate::new(1, 2);
     /// assert_eq!(grid.get(&coordinate), Some(&6));
     ///
@@ -334,7 +334,7 @@ impl<T> Grid<T> for UnsizedGrid<T> {
     /// use aoc_utils_rust::coordinate_system::Coordinate;
     /// use aoc_utils_rust::grid::Grid;
     ///
-    /// let grid = UnsizedGrid::new(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+    /// let grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
     /// let mut iter = grid.iter();
     ///
     /// let mut row_iter = iter.next().unwrap();
@@ -378,7 +378,7 @@ impl<T> GridMut<T> for UnsizedGrid<T> {
     /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
     /// use aoc_utils_rust::grid::{Grid, GridMut};
     ///
-    /// let mut grid = UnsizedGrid::new(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+    /// let mut grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
     /// let row = grid.get_row_mut(1).unwrap();
     /// row[2] = 10;
     /// assert_eq!(grid.get(&Coordinate::new(1, 2)), Some(&10));
@@ -404,7 +404,7 @@ impl<T> GridMut<T> for UnsizedGrid<T> {
     /// use aoc_utils_rust::grid::{Grid, GridMut};
     /// use aoc_utils_rust::coordinate_system::Coordinate;
     ///
-    /// let mut grid = UnsizedGrid::new(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+    /// let mut grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
     /// let coordinate = Coordinate::new(1, 2);
     /// if let Some(value) = grid.get_mut(&coordinate) {
     ///     *value = 10;
@@ -434,7 +434,7 @@ impl<T> GridMut<T> for UnsizedGrid<T> {
 /// use aoc_utils_rust::grid::GridMut;
 /// use aoc_utils_rust::coordinate_system::Coordinate;
 ///
-/// let mut grid = UnsizedGrid::new(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+/// let mut grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
 /// let mut iter = grid.iter_mut();
 ///
 /// let mut row_iter = iter.next().unwrap();
@@ -491,7 +491,7 @@ where
     /// use aoc_utils_rust::grid::GridMut;
     /// use aoc_utils_rust::coordinate_system::Coordinate;
     ///
-    /// let mut grid = UnsizedGrid::new(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+    /// let mut grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
     /// let mut iter = grid.iter_mut();
     ///
     /// let mut row_iter = iter.next().unwrap();

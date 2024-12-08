@@ -629,7 +629,7 @@ impl<N, E> Graph<N, E> {
     /// ### Without cycles
     /// ```
     ///  use std::collections::HashMap;
-    ///  use aoc_utils_rust::graph::Graph;
+    ///  use aoc_utils_rust::graph::{Graph, NodePtr};
     ///
     ///  let mut input = HashMap::<i32, Vec<i32>>::new();
     ///  input.insert(1, vec![2, 3]);
@@ -643,9 +643,9 @@ impl<N, E> Graph<N, E> {
     ///         .topological_sort()
     ///         .expect("This graph does not contain cycles and is therefore topologically sortable.")
     ///         .iter()
-    ///         .map(|node| *graph.get(*node).expect("Node should exist as it was returned by topological_sort."))
+    ///         .map(|node: &NodePtr| *graph.get(*node).expect("Node should exist as it was returned by topological_sort."))
     ///         .collect::<Vec<i32>>();
-    /// 
+    ///
     ///  assert_eq!(topologically_sorted, vec![1, 2, 3, 4]);
     /// ```
     ///

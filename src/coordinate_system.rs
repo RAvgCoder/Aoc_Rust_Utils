@@ -1,5 +1,5 @@
 use std::fmt;
-use std::ops::{Add, AddAssign, Sub};
+use std::ops::{Add, AddAssign, Sub, SubAssign};
 use std::str::FromStr;
 
 /// # Coordinate System
@@ -317,6 +317,24 @@ impl Sub for Coordinate {
             i: self.i - rhs.i,
             j: self.j - rhs.j,
         }
+    }
+}
+impl SubAssign for Coordinate {
+    /// Subtracts another `Coordinate` from this one.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use self::aoc_utils_rust::coordinate_system::Coordinate;
+    /// let mut coord1 = Coordinate::new(5, 7);
+    /// let coord2 = Coordinate::new(2, 3);
+    /// coord1 -= coord2;
+    /// assert_eq!(coord1.i, 3);
+    /// assert_eq!(coord1.j, 4);
+    /// ```
+    fn sub_assign(&mut self, rhs: Self) {
+        self.i -= rhs.i;
+        self.j -= rhs.j;
     }
 }
 

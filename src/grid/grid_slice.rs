@@ -18,7 +18,7 @@ use std::ops::RangeInclusive;
 /// use aoc_utils_rust::coordinate_system::Coordinate;
 /// use aoc_utils_rust::grid::Grid;
 ///
-/// let grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+/// let grid = UnsizedGrid::from(vec![vec![1, 2, 3], vec![4, 5, 6]]);
 /// let grid_slice = GridSlice::new(&grid, 0..=1, 0..=0).unwrap();
 ///
 /// assert_eq!(grid_slice.get(&Coordinate::new(0, 0)), Some(&1));
@@ -63,7 +63,7 @@ where
     /// use aoc_utils_rust::coordinate_system::Coordinate;
     /// use aoc_utils_rust::grid::Grid;
     ///
-    /// let grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+    /// let grid = UnsizedGrid::from(vec![vec![1, 2, 3], vec![4, 5, 6]]);
     /// let grid_slice = GridSlice::new(&grid, 0..=1, 0..=1).unwrap();
     ///
     /// assert_eq!(grid_slice.get(&Coordinate::new(0, 0)), Some(&1));
@@ -113,7 +113,7 @@ where
     /// use aoc_utils_rust::coordinate_system::Coordinate;
     /// use aoc_utils_rust::grid::Grid;
     ///
-    /// let grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+    /// let grid = UnsizedGrid::from(vec![vec![1, 2, 3], vec![4, 5, 6]]);
     /// let grid_slice = GridSlice::new(&grid, 0..=0, 0..=0).unwrap();
     /// let _ = GridSlice::from_slice(&grid_slice, 0..=2, 0..=0).unwrap_err(); // 0..=2 is out of bounds
     /// let new_slice = GridSlice::from_slice(&grid_slice, 0..=0, 0..=0).unwrap();
@@ -175,7 +175,7 @@ where
     /// use aoc_utils_rust::grid::grid_slice::GridSlice;
     /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
     ///
-    /// let grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+    /// let grid = UnsizedGrid::from(vec![vec![1, 2, 3], vec![4, 5, 6]]);
     /// let grid_slice = GridSlice::new(&grid, 0..=1, 0..=2).unwrap();
     ///
     /// assert_eq!(grid_slice.get_row(0), Some([1, 2, 3].as_slice()));
@@ -205,7 +205,7 @@ where
     /// use aoc_utils_rust::coordinate_system::Coordinate;
     /// use aoc_utils_rust::grid::Grid;
     ///
-    /// let grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+    /// let grid = UnsizedGrid::from(vec![vec![1, 2, 3], vec![4, 5, 6]]);
     /// let grid_slice = GridSlice::new(&grid, 0..=1, 0..=0).unwrap();
     ///
     /// assert_eq!(grid_slice.get(&Coordinate::new(0, 0)), Some(&1));
@@ -234,7 +234,7 @@ where
     /// use aoc_utils_rust::coordinate_system::Coordinate;
     /// use aoc_utils_rust::grid::Grid;
     ///
-    /// let grid = UnsizedGrid::from_vec(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+    /// let grid = UnsizedGrid::from(vec![vec![1, 2, 3], vec![4, 5, 6]]);
     /// let grid_slice = GridSlice::new(&grid, 0..=1, 0..=2).unwrap();
     ///
     /// assert!(grid_slice.is_valid_coordinate(&Coordinate::new(0, 0)));
@@ -259,7 +259,7 @@ where
     /// use aoc_utils_rust::coordinate_system::Coordinate;
     /// use aoc_utils_rust::grid::Grid;
     ///
-    /// let grid = UnsizedGrid::from_vec(vec![
+    /// let grid = UnsizedGrid::from(vec![
     ///         vec![1, 2, 3, 4],
     ///         vec![5, 6, 7, 8],
     ///         vec![9, 10, 11, 12],

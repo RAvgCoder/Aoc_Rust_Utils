@@ -152,12 +152,40 @@ impl<'grid, G, T> Grid<T> for GridSlice<'grid, G, T>
 where
     G: Grid<T>,
 {
+    /// Returns the number of rows in the grid slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use aoc_utils_rust::grid::Grid;
+    /// use aoc_utils_rust::grid::grid_slice::GridSlice;
+    /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
+    ///
+    /// let grid = UnsizedGrid::from(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+    /// let grid_slice = GridSlice::new(&grid, 0..=1, 0..=2).unwrap();
+    ///
+    /// assert_eq!(grid_slice.num_rows(), 2);
+    /// ```
     fn num_rows(&self) -> usize {
-        *self.row.end()
+        self.row.size_hint().0
     }
 
+    /// Returns the number of columns in the grid slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use aoc_utils_rust::grid::Grid;
+    /// use aoc_utils_rust::grid::grid_slice::GridSlice;
+    /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
+    ///
+    /// let grid = UnsizedGrid::from(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+    /// let grid_slice = GridSlice::new(&grid, 0..=1, 0..=2).unwrap();
+    ///
+    /// assert_eq!(grid_slice.num_cols(), 3);
+    /// ```
     fn num_cols(&self) -> usize {
-        *self.col.end()
+        self.col.size_hint().0
     }
 
     /// Gets a slice of the specified row within the column range of the view.

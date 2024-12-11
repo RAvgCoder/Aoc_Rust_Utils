@@ -16,9 +16,7 @@ use std::fmt::Formatter;
 /// - The overall data structure is very compact, with no need for separate allocations for each node.
 ///
 /// # Disadvantages
-/// - Removing nodes or edges from the graph can be problematic, as it may lead to "dangling indices"
-///   or require a placeholder, similar to issues with `malloc`/`free`. `(For now removal is not implemented.)`
-/// - Indices from one graph should not be used with another graph to avoid misuse.
+/// - Removing nodes or edges from the graph are not possible as this graph represents a static graph.
 ///
 /// # Type Parameters
 /// * `N` - The type of data stored in the nodes.
@@ -28,14 +26,14 @@ use std::fmt::Formatter;
 ///
 /// ## Create a new graph
 /// ```
-/// use aoc_utils_rust::graph::{NodePtr, EdgeRelationship};
-/// use self::aoc_utils_rust::graph::Graph;
-/// let mut graph = Graph::new();
+/// use aoc_utils_rust::graph::static_graph::{StaticNodePtr, EdgeRelationship};
+/// use aoc_utils_rust::graph::static_graph::StaticGraph;
+/// let mut graph = StaticGraph::new();
 ///
 /// // Add nodes to the graph
-/// let node_a_ptr: NodePtr = graph.add_node("A");
-/// let node_b_ptr: NodePtr = graph.add_node("B");
-/// let node_c_ptr: NodePtr = graph.add_node("C");
+/// let node_a_ptr: StaticNodePtr = graph.add_node("A");
+/// let node_b_ptr: StaticNodePtr = graph.add_node("B");
+/// let node_c_ptr: StaticNodePtr = graph.add_node("C");
 ///
 /// let edge_data = ();
 ///
@@ -58,11 +56,11 @@ use std::fmt::Formatter;
 /// ## Create a graph from a HashMap
 /// ```
 /// use std::collections::HashMap;
-/// use self::aoc_utils_rust::graph::Graph;
+/// use aoc_utils_rust::graph::static_graph::StaticGraph;
 /// let mut map = HashMap::new();
 /// map.insert("A", "B");
 /// map.insert("B", "C");
-/// let graph: Graph<&str, ()> = Graph::from(map);
+/// let graph: StaticGraph<&str, ()> = StaticGraph::from(map);
 /// println!("{:?}", graph);
 /// // Output:
 /// // Graph: (3 nodes) {
@@ -80,7 +78,7 @@ use std::fmt::Formatter;
 ///
 /// ## Create a graph from a vector of tuples with weighted edges
 /// ```
-/// use self::aoc_utils_rust::graph::{Graph, EdgeRelationship};
+/// use self::aoc_utils_rust::graph::static_graph::{StaticGraph, EdgeRelationship};
 /// let edges = [
 ///     ("A", "B", EdgeRelationship::AToB(2)),
 ///     ("B", "C", EdgeRelationship::BToA(10)),
@@ -89,7 +87,7 @@ use std::fmt::Formatter;
 ///         b_to_a: 5,
 ///     }),
 /// ];
-/// let graph: Graph<&str, u8> = Graph::from(edges);
+/// let graph: StaticGraph<&str, u8> = StaticGraph::from(edges);
 /// // println!("{:?}", graph);
 /// // Output:
 /// // Graph: (3 nodes) {
@@ -109,8 +107,8 @@ use std::fmt::Formatter;
 /// ## Iterate through the neighbors of a node
 /// ```
 /// use std::collections::HashSet;
-/// use self::aoc_utils_rust::graph::NodePtr;
-/// use self::aoc_utils_rust::graph::{Graph, EdgeRelationship};
+/// use self::aoc_utils_rust::graph::static_graph::StaticNodePtr;
+/// use self::aoc_utils_rust::graph::static_graph::{StaticGraph, EdgeRelationship};
 /// let edges = [
 ///     ("A", "B", EdgeRelationship::AToB(2)),
 ///     ("B", "C", EdgeRelationship::BToA(10)),
@@ -119,7 +117,7 @@ use std::fmt::Formatter;
 ///         b_to_a: 5,
 ///     }),
 /// ];
-/// let graph: Graph<&str, u8> = Graph::from(edges);
+/// let graph: StaticGraph<&str, u8> = StaticGraph::from(edges);
 /// // println!("{:?}", graph);
 /// // Output:
 /// // Graph: (3 nodes) {
@@ -137,7 +135,7 @@ use std::fmt::Formatter;
 ///
 /// let node_a = graph.find_node_index(|node| *node == "A").unwrap();
 /// // Iterate through the neighbors of node A collecting them into a vector
-/// let neighbours = graph.neighbours_iter(node_a).collect::<Vec<(NodePtr, &u8)>>();
+/// let neighbours = graph.neighbours_iter(node_a).collect::<Vec<(StaticNodePtr, &u8)>>();
 /// assert_eq!(
 ///     neighbours.into_iter().collect::<HashSet<_>>(),
 ///     vec![
@@ -147,9 +145,9 @@ use std::fmt::Formatter;
 /// ```
 ///
 #[derive(Default)]
-pub struct Graph<N, E> {
-    nodes: Vec<Node<N>>,
-    edges: Vec<Edge<E>>,
+pub struct StaticGraph<N, E> {
+    nodes: Vec<StaticNode<N>>,
+    edges: Vec<StaticEdge<E>>,
 }
 
 /// Represents the index of a node in the graph.
@@ -158,7 +156,7 @@ pub struct Graph<N, E> {
 /// identify nodes within the graph.
 #[repr(transparent)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct NodePtr {
+pub struct StaticNodePtr {
     idx: usize,
 }
 
@@ -168,15 +166,15 @@ pub struct NodePtr {
 ///
 /// * `N` - The type of data stored in the node.
 #[derive(Debug)]
-struct Node<N> {
+struct StaticNode<N> {
     /// The data stored in the node.
     data: N,
 
     /// The index of the node in the graph.
-    node_index: NodePtr,
+    node_index: StaticNodePtr,
 
     /// The index of the first edge connected to this node, if any.
-    first_edge: Option<EdgePtr>,
+    first_edge: Option<StaticEdgePtr>,
 }
 
 /// Represents the index of an edge in the graph.
@@ -184,7 +182,7 @@ struct Node<N> {
 /// Used to uniquely identify edges within the graph.
 #[repr(transparent)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct EdgePtr {
+pub struct StaticEdgePtr {
     /// The index of the edge in the graph.
     idx: usize,
 }
@@ -195,19 +193,19 @@ pub struct EdgePtr {
 ///
 /// * `E` - The type of data stored in the edge.
 #[derive(Debug)]
-struct Edge<E> {
+struct StaticEdge<E> {
     /// The data stored in the edge.
     data: E,
 
     /// The index of the destination node.
-    to: NodePtr,
+    to: StaticNodePtr,
 
     /// The index of the next edge connected to the same source node, if any.
-    next_edge: Option<EdgePtr>,
+    next_edge: Option<StaticEdgePtr>,
 }
 
 /// Core methods
-impl<N, E> Graph<N, E> {
+impl<N, E> StaticGraph<N, E> {
     /// Creates a new, empty graph.
     ///
     /// # Returns
@@ -245,9 +243,9 @@ impl<N, E> Graph<N, E> {
     /// # Examples
     ///
     /// ```
-    /// use aoc_utils_rust::graph::Graph;
+    /// use aoc_utils_rust::graph::static_graph::StaticGraph;
     ///
-    /// let mut graph = Graph::<_, ()>::new();
+    /// let mut graph = StaticGraph::<_, ()>::new();
     /// graph.add_node("A");
     /// graph.add_node("B");
     /// graph.clear();
@@ -288,11 +286,11 @@ impl<N, E> Graph<N, E> {
     /// # Examples
     ///
     /// ```
-    /// use self::aoc_utils_rust::graph::{Graph, NodePtr};
+    /// use self::aoc_utils_rust::graph::static_graph::{StaticGraph, StaticNodePtr};
     ///
-    /// let mut graph = Graph::<_, ()>::new();
-    /// let node_a_ptr: NodePtr = graph.add_node("A");
-    /// let node_b_ptr: NodePtr = graph.add_node("B");
+    /// let mut graph = StaticGraph::<_, ()>::new();
+    /// let node_a_ptr: StaticNodePtr = graph.add_node("A");
+    /// let node_b_ptr: StaticNodePtr = graph.add_node("B");
     ///
     /// let found_node = graph.find_node_index(|node| *node == "A");
     /// assert_eq!(found_node, Some(node_a_ptr));
@@ -300,7 +298,7 @@ impl<N, E> Graph<N, E> {
     /// let not_found_node = graph.find_node_index(|node| *node == "C");
     /// assert_eq!(not_found_node, None);
     /// ```
-    pub fn find_node_index<F>(&self, find_fn: F) -> Option<NodePtr>
+    pub fn find_node_index<F>(&self, find_fn: F) -> Option<StaticNodePtr>
     where
         N: PartialEq + Eq,
         F: Fn(&N) -> bool,
@@ -332,15 +330,15 @@ impl<N, E> Graph<N, E> {
     /// # Examples
     ///
     /// ```
-    /// use self::aoc_utils_rust::graph::{Graph, NodePtr};
+    /// use self::aoc_utils_rust::graph::static_graph::{StaticGraph, StaticNodePtr};
     ///
-    /// let mut graph = Graph::<_, ()>::new();
-    /// let node_a_ptr: NodePtr = graph.add_node("A");
+    /// let mut graph = StaticGraph::<_, ()>::new();
+    /// let node_a_ptr: StaticNodePtr = graph.add_node("A");
     ///
     /// let node_a_data = graph.get(node_a_ptr).unwrap();
     /// assert_eq!(node_a_data, &"A");
     /// ```
-    pub fn get(&self, node_index: NodePtr) -> Option<&N> {
+    pub fn get(&self, node_index: StaticNodePtr) -> Option<&N> {
         self.nodes.get(node_index.idx).map(|node| &node.data)
     }
 
@@ -357,10 +355,10 @@ impl<N, E> Graph<N, E> {
     /// # Examples
     ///
     /// ```
-    /// use self::aoc_utils_rust::graph::{Graph, NodePtr};
+    /// use aoc_utils_rust::graph::static_graph::{StaticGraph, StaticNodePtr};
     ///
-    /// let mut graph = Graph::<_, ()>::new();
-    /// let node_a_ptr: NodePtr = graph.add_node("A");
+    /// let mut graph = StaticGraph::<_, ()>::new();
+    /// let node_a_ptr: StaticNodePtr = graph.add_node("A");
     ///
     /// let node_a_data = graph.get_mut(node_a_ptr).unwrap();
     /// *node_a_data = "B";
@@ -368,7 +366,7 @@ impl<N, E> Graph<N, E> {
     /// let node_a_data = graph.get(node_a_ptr).unwrap();
     /// assert_eq!(node_a_data, &"B");
     /// ```
-    pub fn get_mut(&mut self, node_index: NodePtr) -> Option<&mut N> {
+    pub fn get_mut(&mut self, node_index: StaticNodePtr) -> Option<&mut N> {
         self.nodes
             .get_mut(node_index.idx)
             .map(|node| &mut node.data)
@@ -387,19 +385,19 @@ impl<N, E> Graph<N, E> {
     /// # Examples
     ///
     /// ```
-    /// use self::aoc_utils_rust::graph::{Graph, NodePtr};
+    /// use self::aoc_utils_rust::graph::static_graph::{StaticGraph, StaticNodePtr};
     ///
-    /// let mut graph = Graph::<_, ()>::new();
-    /// let node_a_ptr: NodePtr = graph.add_node("A");
+    /// let mut graph = StaticGraph::<_, ()>::new();
+    /// let node_a_ptr: StaticNodePtr = graph.add_node("A");
     ///
     /// let node_a_data = graph.get(node_a_ptr).unwrap();
     /// assert_eq!(node_a_data, &"A");
     /// ```
-    pub fn add_node(&mut self, data: N) -> NodePtr {
-        let node_index = NodePtr {
+    pub fn add_node(&mut self, data: N) -> StaticNodePtr {
+        let node_index = StaticNodePtr {
             idx: self.nodes.len(),
         };
-        self.nodes.push(Node {
+        self.nodes.push(StaticNode {
             data,
             node_index,
             first_edge: None,
@@ -422,12 +420,12 @@ impl<N, E> Graph<N, E> {
     /// # Examples
     ///
     /// ```
-    /// use aoc_utils_rust::graph::EdgeRelationship;
-    /// use self::aoc_utils_rust::graph::{Graph, NodePtr};
+    /// use aoc_utils_rust::graph::static_graph::EdgeRelationship;
+    /// use self::aoc_utils_rust::graph::static_graph::{StaticGraph, StaticNodePtr};
     ///
-    /// let mut graph = Graph::<_, ()>::new();
-    /// let node_a_ptr: NodePtr = graph.add_node("A");
-    /// let node_b_ptr: NodePtr = graph.add_node("B");
+    /// let mut graph = StaticGraph::<_, ()>::new();
+    /// let node_a_ptr: StaticNodePtr = graph.add_node("A");
+    /// let node_b_ptr: StaticNodePtr = graph.add_node("B");
     ///
     /// graph.add_edge(node_a_ptr, node_b_ptr, EdgeRelationship::AToB(())).unwrap();
     ///
@@ -437,21 +435,21 @@ impl<N, E> Graph<N, E> {
     /// ```
     pub fn add_edge(
         &mut self,
-        a_ptr: NodePtr,
-        b_ptr: NodePtr,
+        a_ptr: StaticNodePtr,
+        b_ptr: StaticNodePtr,
         edge_relationship: EdgeRelationship<E>,
-    ) -> Result<(), NodePtr> {
+    ) -> Result<(), StaticNodePtr> {
         fn add_helper<N, E>(
-            graph: &mut Graph<N, E>,
-            a_ptr: NodePtr,
-            b_ptr: NodePtr,
+            graph: &mut StaticGraph<N, E>,
+            a_ptr: StaticNodePtr,
+            b_ptr: StaticNodePtr,
             edge_data: E,
-        ) -> Result<(), NodePtr> {
-            let new_edge_index = Some(EdgePtr {
+        ) -> Result<(), StaticNodePtr> {
+            let new_edge_index = Some(StaticEdgePtr {
                 idx: graph.edges.len(),
             });
 
-            graph.edges.push(Edge {
+            graph.edges.push(StaticEdge {
                 data: edge_data,
                 // Do a trial index to validate the b_ptr
                 to: graph.get(b_ptr).ok_or(b_ptr).map(|_| b_ptr)?,
@@ -488,9 +486,9 @@ impl<N, E> Graph<N, E> {
     /// # Examples
     ///
     /// ```
-    /// use self::aoc_utils_rust::graph::{Graph, EdgeRelationship};
+    /// use self::aoc_utils_rust::graph::static_graph::{StaticGraph, EdgeRelationship};
     ///
-    /// let mut graph = Graph::<_, u8>::new();
+    /// let mut graph = StaticGraph::<_, u8>::new();
     /// graph.add_edge_by_data("A", "B", EdgeRelationship::AToB(2));
     /// graph.add_edge_by_data("B", "C", EdgeRelationship::BToA(10));
     /// graph.add_edge_by_data("C", "A", EdgeRelationship::BiDirectional { a_to_b: 1, b_to_a: 5 });
@@ -536,7 +534,7 @@ impl<N, E> Graph<N, E> {
     /// # Returns
     ///
     /// An `Option` containing a reference to the edge if it exists, or `None` if the index is out of bounds.
-    fn get_edge(&self, edge_index: EdgePtr) -> Option<&Edge<E>> {
+    fn get_edge(&self, edge_index: StaticEdgePtr) -> Option<&StaticEdge<E>> {
         self.edges.get(edge_index.idx)
     }
 
@@ -567,11 +565,10 @@ impl<N, E> Graph<N, E> {
     /// assert_eq!(in_degrees[2], (node_c, Some(2)));
     /// assert_eq!(in_degrees[3], (node_d, Some(1)));
     /// ```
-    fn get_in_degrees(&self) -> Vec<(NodePtr, Option<u32>)> {
-        let mut in_degrees = vec![(NodePtr { idx: 0 }, None); self.nodes.len()];
-        // FIXME: If removal is ever implemented, this will need to be updated to handle the removal of nodes.
+    fn get_in_degrees(&self) -> Vec<(StaticNodePtr, Option<u32>)> {
+        let mut in_degrees = vec![(StaticNodePtr { idx: 0 }, None); self.nodes.len()];
         for (idx, node) in self.nodes.iter().enumerate() {
-            in_degrees[node.node_index.idx].0 = NodePtr { idx };
+            in_degrees[node.node_index.idx].0 = StaticNodePtr { idx };
             for (neighbour, _) in self.neighbours_iter(node.node_index) {
                 *in_degrees[neighbour.idx].1.get_or_insert(0) += 1;
             }
@@ -597,19 +594,19 @@ impl<N, E> Graph<N, E> {
     /// # Examples
     ///
     /// ```
-    /// use aoc_utils_rust::graph::EdgeRelationship;
-    /// use self::aoc_utils_rust::graph::{Graph, NodePtr};
+    /// use aoc_utils_rust::graph::static_graph::EdgeRelationship;
+    /// use self::aoc_utils_rust::graph::static_graph::{StaticGraph, StaticNodePtr};
     ///
-    /// let mut graph = Graph::<_, ()>::new();
-    /// let node_a_ptr: NodePtr = graph.add_node("A");
-    /// let node_b_ptr: NodePtr = graph.add_node("B");
+    /// let mut graph = StaticGraph::<_, ()>::new();
+    /// let node_a_ptr: StaticNodePtr = graph.add_node("A");
+    /// let node_b_ptr: StaticNodePtr = graph.add_node("B");
     /// graph.add_edge(node_a_ptr, node_b_ptr, EdgeRelationship::AToB(())).unwrap();
     ///
     /// let neighbours = graph.neighbours_iter(node_a_ptr).collect::<Vec<_>>();
     /// assert_eq!(neighbours.len(), 1);
     /// assert_eq!(neighbours[0].0, node_b_ptr);
     /// ```
-    pub fn neighbours_iter(&self, node_index: NodePtr) -> Neighbours<N, E> {
+    pub fn neighbours_iter(&self, node_index: StaticNodePtr) -> Neighbours<N, E> {
         Neighbours {
             graph: self,
             edges: self.nodes[node_index.idx].first_edge.clone(),
@@ -618,7 +615,7 @@ impl<N, E> Graph<N, E> {
 }
 
 /// Algorithms
-impl<N, E> Graph<N, E> {
+impl<N, E> StaticGraph<N, E> {
     /// Performs a topological sort on the graph.
     ///
     /// This function returns a vector of `NodePtr` representing the nodes in topologically sorted order.
@@ -629,7 +626,7 @@ impl<N, E> Graph<N, E> {
     /// ### Without cycles
     /// ```
     ///  use std::collections::HashMap;
-    ///  use aoc_utils_rust::graph::Graph;
+    ///  use aoc_utils_rust::graph::static_graph::{StaticGraph, StaticNodePtr};
     ///
     ///  let mut input = HashMap::<i32, Vec<i32>>::new();
     ///  input.insert(1, vec![2, 3]);
@@ -637,23 +634,23 @@ impl<N, E> Graph<N, E> {
     ///  input.insert(3, vec![4]);
     ///  input.insert(4, vec![]);
     ///
-    ///  let mut graph = Graph::<_, ()>::from(input);
+    ///  let mut graph = StaticGraph::<_, ()>::from(input);
     ///
     ///  let topologically_sorted = graph
     ///         .topological_sort()
     ///         .expect("This graph does not contain cycles and is therefore topologically sortable.")
     ///         .iter()
-    ///         .map(|node| *graph.get(*node).expect("Node should exist as it was returned by topological_sort."))
+    ///         .map(|node: &StaticNodePtr| *graph.get(*node).expect("Node should exist as it was returned by topological_sort."))
     ///         .collect::<Vec<i32>>();
-    /// 
+    ///
     ///  assert_eq!(topologically_sorted, vec![1, 2, 3, 4]);
     /// ```
     ///
     /// ### With cycles
     /// ```
-    /// use aoc_utils_rust::graph::{Graph, NodePtr, EdgeRelationship};
+    /// use aoc_utils_rust::graph::static_graph::{StaticGraph, StaticNodePtr, EdgeRelationship};
     ///
-    /// let mut graph = Graph::new();
+    /// let mut graph = StaticGraph::new();
     /// let node_a = graph.add_node("A");
     /// let node_b = graph.add_node("B");
     /// let node_c = graph.add_node("C");
@@ -664,7 +661,7 @@ impl<N, E> Graph<N, E> {
     /// let sorted = graph.topological_sort();
     /// assert!(sorted.is_err());
     /// ```
-    pub fn topological_sort(&self) -> Result<Vec<NodePtr>, ()> {
+    pub fn topological_sort(&self) -> Result<Vec<StaticNodePtr>, ()> {
         let mut result = Vec::with_capacity(self.nodes.len());
         let mut zero_in_degree_nodes = Vec::new();
 
@@ -710,12 +707,12 @@ impl<N, E> Graph<N, E> {
 /// # Examples
 ///
 /// ```
-/// use aoc_utils_rust::graph::EdgeRelationship;
-/// use self::aoc_utils_rust::graph::{Graph, NodePtr};
+/// use aoc_utils_rust::graph::static_graph::EdgeRelationship;
+/// use self::aoc_utils_rust::graph::static_graph::{StaticGraph, StaticNodePtr};
 ///
-/// let mut graph = Graph::<_, ()>::new();
-/// let node_a_ptr: NodePtr = graph.add_node("A");
-/// let node_b_ptr: NodePtr = graph.add_node("B");
+/// let mut graph = StaticGraph::<_, ()>::new();
+/// let node_a_ptr: StaticNodePtr = graph.add_node("A");
+/// let node_b_ptr: StaticNodePtr = graph.add_node("B");
 /// graph.add_edge(node_a_ptr, node_b_ptr, EdgeRelationship::AToB(())).unwrap();
 ///
 /// let neighbours = graph.neighbours_iter(node_a_ptr).collect::<Vec<_>>();
@@ -723,15 +720,15 @@ impl<N, E> Graph<N, E> {
 /// assert_eq!(neighbours[0].0, node_b_ptr);
 /// ```
 pub struct Neighbours<'a, N, E> {
-    graph: &'a Graph<N, E>,
-    edges: Option<EdgePtr>,
+    graph: &'a StaticGraph<N, E>,
+    edges: Option<StaticEdgePtr>,
 }
 
 impl<'a, N, E> Iterator for Neighbours<'a, N, E>
 where
     E: 'a,
 {
-    type Item = (NodePtr, &'a E);
+    type Item = (StaticNodePtr, &'a E);
 
     /// Advances the iterator and returns the next neighbor of the node.
     ///
@@ -747,11 +744,11 @@ where
     /// # Examples
     ///
     /// ```
-    /// use aoc_utils_rust::graph::{Graph, NodePtr, EdgeRelationship};
+    /// use aoc_utils_rust::graph::static_graph::{StaticGraph, StaticNodePtr, EdgeRelationship};
     ///
-    /// let mut graph = Graph::<_, ()>::new();
-    /// let node_a_ptr: NodePtr = graph.add_node("A");
-    /// let node_b_ptr: NodePtr = graph.add_node("B");
+    /// let mut graph = StaticGraph::<_, ()>::new();
+    /// let node_a_ptr: StaticNodePtr = graph.add_node("A");
+    /// let node_b_ptr: StaticNodePtr = graph.add_node("B");
     /// graph.add_edge(node_a_ptr, node_b_ptr, EdgeRelationship::AToB(())).unwrap();
     ///
     /// let mut neighbours_iter = graph.neighbours_iter(node_a_ptr);
@@ -768,7 +765,7 @@ where
     }
 }
 
-impl<N, E> std::fmt::Debug for Graph<N, E>
+impl<N, E> std::fmt::Debug for StaticGraph<N, E>
 where
     N: std::fmt::Debug,
     E: std::fmt::Debug,
@@ -836,7 +833,7 @@ pub enum EdgeRelationship<E> {
     BToA(E),
 }
 
-impl<N, E> From<HashMap<N, N>> for Graph<N, E>
+impl<N, E> From<HashMap<N, N>> for StaticGraph<N, E>
 where
     N: PartialEq + Eq,
     E: Default,
@@ -854,7 +851,7 @@ where
     ///
     /// A new instance of `Graph`.
     fn from(hash_map: HashMap<N, N>) -> Self {
-        let mut graph = Graph::with_capacity(hash_map.len());
+        let mut graph = StaticGraph::with_capacity(hash_map.len());
         for (from, to) in hash_map {
             graph.add_edge_by_data(from, to, EdgeRelationship::AToB(E::default()));
         }
@@ -862,7 +859,7 @@ where
     }
 }
 
-impl<N, E> From<HashMap<N, Vec<N>>> for Graph<N, E>
+impl<N, E> From<HashMap<N, Vec<N>>> for StaticGraph<N, E>
 where
     N: PartialEq + Eq,
     E: Default,
@@ -880,7 +877,7 @@ where
     ///
     /// A new instance of `Graph`.
     fn from(hash_map: HashMap<N, Vec<N>>) -> Self {
-        let mut graph = Graph::with_capacity(hash_map.len());
+        let mut graph = StaticGraph::with_capacity(hash_map.len());
         for (from, to_many) in hash_map {
             let from = graph
                 .find_node_index(|e| *e == from)
@@ -899,13 +896,13 @@ where
     }
 }
 
-impl<N, E> From<Box<[(N, N, EdgeRelationship<E>)]>> for Graph<N, E>
+impl<N, E> From<Box<[(N, N, EdgeRelationship<E>)]>> for StaticGraph<N, E>
 where
     N: PartialEq + Eq,
 {
     /// Creates a graph from a boxed slice of tuples.
     fn from(slice: Box<[(N, N, EdgeRelationship<E>)]>) -> Self {
-        let mut graph = Graph::with_capacity(slice.len());
+        let mut graph = StaticGraph::with_capacity(slice.len());
 
         for (from, to, relationship) in slice.into_vec().into_iter() {
             graph.add_edge_by_data(from, to, relationship);
@@ -915,7 +912,7 @@ where
     }
 }
 
-impl<N, E, const S: usize> From<[(N, N, EdgeRelationship<E>); S]> for Graph<N, E>
+impl<N, E, const S: usize> From<[(N, N, EdgeRelationship<E>); S]> for StaticGraph<N, E>
 where
     N: PartialEq + Eq,
 {
@@ -929,7 +926,7 @@ where
     ///
     /// A new instance of `Graph`.
     fn from(array_tuple: [(N, N, EdgeRelationship<E>); S]) -> Self {
-        let mut graph = Graph::with_capacity(array_tuple.len());
+        let mut graph = StaticGraph::with_capacity(array_tuple.len());
 
         for (from, to, relationship) in array_tuple {
             graph.add_edge_by_data(from, to, relationship);

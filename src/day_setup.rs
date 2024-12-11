@@ -241,8 +241,8 @@ use aoc_utils_rust::day_setup::Utils;
 ///   If the result of any part does not match the expected value.
 pub fn run() {{
     // run_part(day_func_part_to_run, part_num, day_num)
-    Utils::run_part_single(part1, 1, 0, None);
-    Utils::run_part_single(part2, 2, 0, None);
+    Utils::run_part(part1, 1, 0, None);
+    Utils::run_part(part2, 2, 0, None);
 }}
 
 fn part1(input: Vec<String>) -> u64 {{

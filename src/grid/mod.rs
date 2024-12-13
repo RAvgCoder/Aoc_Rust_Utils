@@ -125,7 +125,7 @@ pub trait Grid<T> {
 /// use self::aoc_utils_rust::grid::sized_grid::SizedGrid;
 /// use self::aoc_utils_rust::coordinate_system::Coordinate;
 ///
-/// let mut grid = SizedGrid::<i32, 2, 3>::new([[1, 2, 3], [4, 5, 6]]);
+/// let mut grid = SizedGrid::<i32, 2, 3>::from([[1, 2, 3], [4, 5, 6]]);
 /// assert_eq!(grid.num_rows(), 2);
 /// assert_eq!(grid.num_cols(), 3);
 /// assert_eq!(grid.get(&Coordinate::new(0, 1)), Some(&2));
@@ -192,7 +192,7 @@ pub mod iterators {
     /// use self::aoc_utils_rust::grid::sized_grid::SizedGrid;
     /// use self::aoc_utils_rust::coordinate_system::Coordinate;
     ///
-    /// let grid = SizedGrid::<i32, 2, 3>::new([[1, 2, 3], [4, 5, 6]]);
+    /// let grid = SizedGrid::<i32, 2, 3>::from([[1, 2, 3], [4, 5, 6]]);
     /// let mut iter: GridIter<SizedGrid<i32, 2, 3>, i32> = grid.iter();
     /// let mut first_row: RowIter<i32> = iter.next().unwrap();
     /// let first_element = first_row.next().unwrap();
@@ -232,7 +232,7 @@ pub mod iterators {
         /// use aoc_utils_rust::grid::sized_grid::SizedGrid;
         /// use aoc_utils_rust::coordinate_system::Coordinate;
         ///
-        /// let grid = SizedGrid::<i32, 2, 3>::new([[1, 2, 3], [4, 5, 6]]);
+        /// let grid = SizedGrid::<i32, 2, 3>::from([[1, 2, 3], [4, 5, 6]]);
         /// let mut iter = grid.iter();
         /// let mut first_row = iter.next().unwrap();
         /// let first_element = first_row.next().unwrap();

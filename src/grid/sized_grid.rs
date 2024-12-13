@@ -195,6 +195,7 @@ impl<T, const ROW: usize, const COL: usize> Grid<T> for SizedGrid<T, ROW, COL> {
     /// # Examples
     ///
     /// ```
+    /// use aoc_utils_rust::grid::Grid;
     /// use aoc_utils_rust::grid::sized_grid::SizedGrid;
     ///
     /// let grid = SizedGrid::<i32, 2, 3>::from([[1, 2, 3], [4, 5, 6]]);

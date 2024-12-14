@@ -1,5 +1,5 @@
 use std::fmt;
-use std::ops::{Add, AddAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign};
 use std::str::FromStr;
 
 /// # Coordinate System
@@ -362,6 +362,54 @@ impl Add<direction::Direction> for Coordinate {
     }
 }
 
+impl Mul<i32> for Coordinate {
+    type Output = Coordinate;
+
+    /// Multiplies the `Coordinate` by a scalar value.
+    ///
+    /// # Arguments
+    ///
+    /// * `rhs` - The scalar value to multiply by.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use self::aoc_utils_rust::coordinate_system::Coordinate;
+    /// let coord = Coordinate::new(3, 4);
+    /// let result = coord * 2;
+    /// assert_eq!(result.i, 6);
+    /// assert_eq!(result.j, 8);
+    /// ```
+    fn mul(self, rhs: i32) -> Self::Output {
+        Self {
+            i: self.i * rhs,
+            j: self.j * rhs,
+        }
+    }
+}
+
+impl MulAssign<i32> for Coordinate {
+    /// Multiplies the `Coordinate` by a scalar value in place.
+    ///
+    /// # Arguments
+    ///
+    /// * `rhs` - The scalar value to multiply by.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use self::aoc_utils_rust::coordinate_system::Coordinate;
+    /// let mut coord = Coordinate::new(3, 4);
+    /// coord *= 2;
+    /// assert_eq!(coord.i, 6);
+    /// assert_eq!(coord.j, 8);
+    /// ```
+    fn mul_assign(&mut self, rhs: i32) {
+        self.i *= rhs;
+        self.j *= rhs;
+    }
+}
+
 impl From<(i32, i32)> for Coordinate {
     /// Creates a `Coordinate` from a tuple.
     ///
@@ -451,7 +499,7 @@ impl FromStr for Coordinate {
     /// ```
     fn from_str(line: &str) -> Result<Self, Self::Err> {
         match line.split_once(',') {
-            None => Err(format!("Invalid coordinate {}. Format is 'x,y'", line)),
+            None => Err(format!("Invalid coordinate `{}`. Format is 'x,y'", line)),
             Some((i, j)) => {
                 let x = i.parse().map_err(|err: std::num::ParseIntError| {
                     format!("Cannot parse i axis: {}", err)

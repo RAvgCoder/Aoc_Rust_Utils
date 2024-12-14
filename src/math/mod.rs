@@ -50,4 +50,28 @@ impl Math {
     pub const fn lcm(a: i64, b: i64) -> i64 {
         a * b / Math::gcd(a, b)
     }
+
+    /// Computes the modulus of two integers, ensuring a positive result.
+    ///
+    /// # Arguments
+    ///
+    /// * `a` - The dividend.
+    /// * `b` - The divisor.
+    ///
+    /// # Returns
+    ///
+    /// The positive modulus of `a` and `b`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use aoc_utils_rust::math::Math;
+    /// assert_eq!(Math::mod_(10, 3), 1);
+    /// assert_eq!(Math::mod_(-10, 3), 2);
+    /// assert_eq!(Math::mod_(10, 5), 0);
+    /// ```
+    #[inline(always)]
+    pub const fn mod_(a: i64, b: u64) -> i64 {
+        (a % b as i64 + b as i64) % b as i64
+    }
 }

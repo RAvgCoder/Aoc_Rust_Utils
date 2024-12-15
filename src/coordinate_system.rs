@@ -1,3 +1,4 @@
+use crate::coordinate_system::direction::Direction;
 use std::fmt;
 use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign};
 use std::str::FromStr;
@@ -268,6 +269,27 @@ impl AddAssign for Coordinate {
     fn add_assign(&mut self, other: Self) {
         self.i += other.i;
         self.j += other.j;
+    }
+}
+
+impl AddAssign<Direction> for Coordinate {
+    /// Adds a `Direction` to this `Coordinate`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use self::aoc_utils_rust::coordinate_system::Coordinate;
+    /// use self::aoc_utils_rust::coordinate_system::direction::Direction;
+    /// let mut coord = Coordinate::new(3, 4);
+    /// coord += Direction::North;
+    /// assert_eq!(coord.i, 2);
+    /// assert_eq!(coord.j, 4);
+    /// ```
+    #[inline(always)]
+    fn add_assign(&mut self, direction: Direction) {
+        let (dx, dy) = direction.offset();
+        self.i += dx;
+        self.j += dy;
     }
 }
 

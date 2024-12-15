@@ -66,53 +66,12 @@ pub trait Grid<T> {
             && (0..self.num_cols()).contains(&(coordinate.j as usize))
     }
 
-    /// Returns an iterator over the elements of the grid.
-    ///
-    /// # Type Parameters
-    /// * `'a` - The lifetime of the references to the grid and its elements.
-    ///
-    /// # Returns
-    /// A `GridIter` that iterates over the elements of the grid.
-    fn iter<'a>(&'a self) -> GridIter<'a, Self, T>
-    where
-        T: 'a,
-        Self: Sized;
-
     /// Returns the coordinate of the last element in the grid.
     ///
     /// # Returns
     /// A `Coordinate` representing the position of the last element in the grid.
     fn last_coordinate(&self) -> Coordinate {
         Coordinate::new((self.num_rows() - 1) as i32, (self.num_cols() - 1) as i32)
-    }
-
-    /// Applies a function to each element in the grid.
-    ///
-    /// # Type Parameters
-    /// * `'a` - The lifetime of the references to the grid and its elements.
-    /// * `F` - The type of the function to apply to each element.
-    /// * `A` - The type of the result.
-    ///
-    /// # Arguments
-    /// * `func` - The function to apply to each element. It takes a `Coordinate`, a reference to the element, and a mutable reference to the result.
-    ///
-    /// # Returns
-    /// The result of applying the function to each element in the grid.
-    fn foreach<F, A>(&self, func: F) -> A
-    where
-        F: Fn(Coordinate, &T, &mut A),
-        A: Default,
-        Self: Sized,
-    {
-        let mut accumulator: A = Default::default();
-
-        for row in self.iter() {
-            for (pos, e) in row {
-                func(pos, e, &mut accumulator)
-            }
-        }
-
-        accumulator
     }
 }
 

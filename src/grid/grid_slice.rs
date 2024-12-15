@@ -146,6 +146,48 @@ where
 
         Err(())
     }
+
+    /// Returns an iterator over the elements in the view.
+    ///
+    /// # Returns
+    /// An iterator over the elements in the view.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use aoc_utils_rust::grid::grid_slice::GridSlice;
+    /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
+    /// use aoc_utils_rust::coordinate_system::Coordinate;
+    ///
+    /// let grid = UnsizedGrid::from(vec![
+    ///         vec![1, 2, 3, 4],
+    ///         vec![5, 6, 7, 8],
+    ///         vec![9, 10, 11, 12],
+    ///         vec![13, 14, 15, 16]
+    /// ]);
+    ///
+    /// let grid_slice = GridSlice::new(&grid, 1..=2, 1..=2).unwrap();
+    /// let mut iter = grid_slice.iter();
+    ///
+    /// let mut row_iter = iter.next().unwrap();
+    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 0), &6)));
+    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 1), &7)));
+    /// assert_eq!(row_iter.next(), None);
+    ///
+    /// let mut row_iter = iter.next().unwrap();
+    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 0), &10)));
+    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 1), &11)));
+    /// assert_eq!(row_iter.next(), None);
+    ///
+    /// assert_eq!(iter.next(), None);
+    /// ```
+    pub fn iter<'a>(&'a self) -> GridIter<'a, Self, T>
+    where
+        T: 'a,
+        Self: Sized,
+    {
+        GridIter::new(self, *self.row.start())
+    }
 }
 
 impl<'grid, G, T> Grid<T> for GridSlice<'grid, G, T>
@@ -272,48 +314,5 @@ where
     /// ```
     fn is_valid_coordinate(&self, coordinate: &Coordinate) -> bool {
         self.row.contains(&(coordinate.i as usize)) && self.col.contains(&(coordinate.j as usize))
-    }
-
-    /// Returns an iterator over the elements in the view.
-    ///
-    /// # Returns
-    /// An iterator over the elements in the view.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use aoc_utils_rust::grid::grid_slice::GridSlice;
-    /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
-    /// use aoc_utils_rust::coordinate_system::Coordinate;
-    /// use aoc_utils_rust::grid::Grid;
-    ///
-    /// let grid = UnsizedGrid::from(vec![
-    ///         vec![1, 2, 3, 4],
-    ///         vec![5, 6, 7, 8],
-    ///         vec![9, 10, 11, 12],
-    ///         vec![13, 14, 15, 16]
-    /// ]);
-    ///
-    /// let grid_slice = GridSlice::new(&grid, 1..=2, 1..=2).unwrap();
-    /// let mut iter = grid_slice.iter();
-    ///
-    /// let mut row_iter = iter.next().unwrap();
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 0), &6)));
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 1), &7)));
-    /// assert_eq!(row_iter.next(), None);
-    ///
-    /// let mut row_iter = iter.next().unwrap();
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 0), &10)));
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 1), &11)));
-    /// assert_eq!(row_iter.next(), None);
-    ///
-    /// assert_eq!(iter.next(), None);
-    /// ```
-    fn iter<'a>(&'a self) -> GridIter<'a, Self, T>
-    where
-        T: 'a,
-        Self: Sized,
-    {
-        GridIter::new(self, *self.row.start())
     }
 }

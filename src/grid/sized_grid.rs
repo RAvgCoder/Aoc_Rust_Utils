@@ -82,7 +82,7 @@ impl<T, const ROW: usize, const COL: usize> SizedGrid<T, ROW, COL> {
     /// ```
     /// use std::rc::Rc;
     /// use aoc_utils_rust::coordinate_system::Coordinate;
-    /// use aoc_utils_rust::grid::Grid;
+    /// use aoc_utils_rust::grid::{Grid, GridMut};
     /// use aoc_utils_rust::grid::sized_grid::SizedGrid;
     ///
     /// #[derive(Clone)]
@@ -116,37 +116,30 @@ impl<T, const ROW: usize, const COL: usize> SizedGrid<T, ROW, COL> {
         }
     }
 
-    /// Returns a mutable reference to the element at the specified position.
-    ///
-    /// # Arguments
-    ///
-    /// * `position` - The position of the element.
+    /// Creates an iterator over the grid.
     ///
     /// # Returns
     ///
-    /// An `Option` containing a mutable reference to the element, or `None` if the position is invalid.
+    /// A `GridIter` over the grid.
     ///
     /// # Examples
     ///
     /// ```
-    /// use aoc_utils_rust::grid::sized_grid::SizedGrid;
-    /// use aoc_utils_rust::coordinate_system::Coordinate;
     /// use aoc_utils_rust::grid::Grid;
+    /// use self::aoc_utils_rust::grid::sized_grid::SizedGrid;
+    /// use self::aoc_utils_rust::coordinate_system::Coordinate;
     ///
-    /// let mut grid = SizedGrid::<i32, 2, 3>::from([[1, 2, 3], [4, 5, 6]]);
-    /// let coordinate = Coordinate::new(1, 2);
-    /// if let Some(value) = grid.get_mut(&coordinate) {
-    ///     *value = 10;
-    /// }
-    /// assert_eq!(grid.get(&coordinate), Some(&10));
+    /// let grid = SizedGrid::<i32, 2, 3>::from([[1, 2, 3], [4, 5, 6]]);
+    /// let mut iter = grid.iter();
+    /// let mut first_row = iter.next().unwrap();
+    /// let first_element = first_row.next().unwrap();
+    /// assert_eq!(first_element, (Coordinate::new(0, 0), &1));
     /// ```
-    #[inline(always)]
-    pub fn get_mut(&mut self, position: &Coordinate) -> Option<&mut T> {
-        if self.is_valid_coordinate(&position) {
-            Some(&mut self.matrix[position.i as usize][position.j as usize])
-        } else {
-            None
-        }
+    pub fn iter<'a>(&'a self) -> GridIter<'a, Self, T>
+    where
+        T: 'a,
+    {
+        GridIter::new(self, 0)
     }
 }
 
@@ -258,32 +251,6 @@ impl<T, const ROW: usize, const COL: usize> Grid<T> for SizedGrid<T, ROW, COL> {
             None
         }
     }
-
-    /// Creates an iterator over the grid.
-    ///
-    /// # Returns
-    ///
-    /// A `GridIter` over the grid.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use aoc_utils_rust::grid::Grid;
-    /// use self::aoc_utils_rust::grid::sized_grid::SizedGrid;
-    /// use self::aoc_utils_rust::coordinate_system::Coordinate;
-    ///
-    /// let grid = SizedGrid::<i32, 2, 3>::from([[1, 2, 3], [4, 5, 6]]);
-    /// let mut iter = grid.iter();
-    /// let mut first_row = iter.next().unwrap();
-    /// let first_element = first_row.next().unwrap();
-    /// assert_eq!(first_element, (Coordinate::new(0, 0), &1));
-    /// ```
-    fn iter<'a>(&'a self) -> GridIter<'a, Self, T>
-    where
-        T: 'a,
-    {
-        GridIter::new(self, 0)
-    }
 }
 
 impl<T, const N: usize, const M: usize> GridMut<T> for SizedGrid<T, N, M> {
@@ -327,8 +294,8 @@ impl<T, const N: usize, const M: usize> GridMut<T> for SizedGrid<T, N, M> {
     ///
     /// ```
     /// use aoc_utils_rust::grid::sized_grid::SizedGrid;
-    /// use aoc_utils_rust::grid::{Grid, GridMut};
     /// use aoc_utils_rust::coordinate_system::Coordinate;
+    /// use aoc_utils_rust::grid::{Grid, GridMut};
     ///
     /// let mut grid = SizedGrid::<i32, 2, 3>::from([[1, 2, 3], [4, 5, 6]]);
     /// let coordinate = Coordinate::new(1, 2);
@@ -337,8 +304,13 @@ impl<T, const N: usize, const M: usize> GridMut<T> for SizedGrid<T, N, M> {
     /// }
     /// assert_eq!(grid.get(&coordinate), Some(&10));
     /// ```
+    #[inline(always)]
     fn get_mut(&mut self, position: &Coordinate) -> Option<&mut T> {
-        self.get_mut(position)
+        if self.is_valid_coordinate(&position) {
+            Some(&mut self.matrix[position.i as usize][position.j as usize])
+        } else {
+            None
+        }
     }
 }
 pub mod iterator {

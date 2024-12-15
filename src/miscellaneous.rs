@@ -15,12 +15,16 @@ where
     M: Display,
 {
     dump_obj_to_file(file_name, |file| match &own_func {
-        Some(f) => Ok(for row in grid.iter() {
-            for (_, e) in row {
-                write!(file, "{}", f(e))?;
+        Some(f) => {
+            for row in 0..grid.num_rows() {
+                for e in grid.get_row(row).unwrap() {
+                    write!(file, "{}", f(e))?;
+                }
+                writeln!(file)?;
             }
-            writeln!(file)?;
-        }),
+
+            Ok(())
+        }
         None => {
             writeln!(file, "{:?}", grid)
         }

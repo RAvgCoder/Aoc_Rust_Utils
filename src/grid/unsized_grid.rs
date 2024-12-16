@@ -87,6 +87,45 @@ impl<T> UnsizedGrid<T> {
         Self::from(vec![vec![default; cols]; rows])
     }
 
+    /// Creates a new `UnsizedGrid` with the same dimensions as the provided grid,
+    /// initializing all elements to the provided default value.
+    ///
+    /// # Arguments
+    ///
+    /// * `grid` - A reference to a grid implementing the `Grid` trait, from which the dimensions are taken.
+    /// * `default` - The default value to initialize each element in the new grid.
+    ///
+    /// # Type Parameters
+    ///
+    /// * `O` - The type of elements stored in the provided grid.
+    /// * `T` - The type of elements stored in the new grid. Must implement the `Clone` trait.
+    ///
+    /// # Returns
+    ///
+    /// A new `UnsizedGrid` instance with the same dimensions as the provided grid and default values.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use aoc_utils_rust::coordinate_system::Coordinate;
+    /// use aoc_utils_rust::grid::{Grid, GridMut};
+    /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
+    ///
+    /// let original_grid = UnsizedGrid::new(2, 3, 0);
+    /// let new_grid = UnsizedGrid::with_size_from(&original_grid, 1);
+    ///
+    /// assert_eq!(new_grid.num_rows(), 2);
+    /// assert_eq!(new_grid.num_cols(), 3);
+    /// assert_eq!(new_grid.get(&Coordinate::new(0, 1)), Some(&1));
+    /// ```
+    #[inline]
+    pub fn with_size_from<O>(grid: &impl Grid<O>, default: T) -> UnsizedGrid<T>
+    where
+        T: Clone,
+    {
+        Self::new(grid.num_rows(), grid.num_cols(), default)
+    }
+
     /// Creates an iterator over the grid which allows mutation of `T`.
     ///
     /// # Returns
@@ -177,7 +216,7 @@ impl<T: Debug> Debug for UnsizedGrid<T> {
         writeln!(f, "UnsizedGrid: {{")?;
         for row in self.matrix.iter() {
             for cell in row.iter() {
-                write!(f, "{:?}    ", cell)?;
+                write!(f, "{:?}", cell)?;
             }
             writeln!(f)?;
         }

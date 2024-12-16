@@ -599,6 +599,72 @@ pub mod direction {
         pub const fn direction_list() -> [Direction; 4] {
             [Self::North, Self::East, Self::South, Self::West]
         }
+
+        /// Rotates the direction 90 degrees to the right.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use self::aoc_utils_rust::coordinate_system::direction::Direction;
+        /// assert_eq!(Direction::North.rotate_right(), Direction::East);
+        /// assert_eq!(Direction::East.rotate_right(), Direction::South);
+        /// assert_eq!(Direction::South.rotate_right(), Direction::West);
+        /// assert_eq!(Direction::West.rotate_right(), Direction::North);
+        /// assert_eq!(Direction::Current.rotate_right(), Direction::Current);
+        /// ```
+        pub const fn rotate_right(&self) -> Direction {
+            match self {
+                Self::North => Self::East,
+                Self::East => Self::South,
+                Self::South => Self::West,
+                Self::West => Self::North,
+                Self::Current => Self::Current,
+            }
+        }
+
+        /// Rotates the direction 90 degrees to the left.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use self::aoc_utils_rust::coordinate_system::direction::Direction;
+        /// assert_eq!(Direction::North.rotate_left(), Direction::West);
+        /// assert_eq!(Direction::East.rotate_left(), Direction::North);
+        /// assert_eq!(Direction::South.rotate_left(), Direction::East);
+        /// assert_eq!(Direction::West.rotate_left(), Direction::South);
+        /// assert_eq!(Direction::Current.rotate_left(), Direction::Current);
+        /// ```
+        pub const fn rotate_left(&self) -> Direction {
+            match self {
+                Self::North => Self::West,
+                Self::East => Self::North,
+                Self::South => Self::East,
+                Self::West => Self::South,
+                Self::Current => Self::Current,
+            }
+        }
+
+        /// Returns the opposite direction.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use self::aoc_utils_rust::coordinate_system::direction::Direction;
+        /// assert_eq!(Direction::North.rotate_180(), Direction::South);
+        /// assert_eq!(Direction::East.rotate_180(), Direction::West);
+        /// assert_eq!(Direction::South.rotate_180(), Direction::North);
+        /// assert_eq!(Direction::West.rotate_180(), Direction::East);
+        /// assert_eq!(Direction::Current.rotate_180(), Direction::Current);
+        /// ```
+        pub const fn rotate_180(&self) -> Direction {
+            match self {
+                Self::North => Self::South,
+                Self::East => Self::West,
+                Self::South => Self::North,
+                Self::West => Self::East,
+                Self::Current => Self::Current,
+            }
+        }
     }
 
     impl TryFrom<char> for Direction {

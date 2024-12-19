@@ -1,7 +1,7 @@
 use crate::coordinate_system::Coordinate;
 use crate::grid::{Grid, GridIter};
 use std::marker::PhantomData;
-use std::ops::RangeInclusive;
+use std::ops::{Deref, RangeInclusive};
 
 /// A view into a subset of a grid, defined by row and column ranges.
 ///
@@ -18,11 +18,19 @@ use std::ops::RangeInclusive;
 /// use aoc_utils_rust::coordinate_system::Coordinate;
 /// use aoc_utils_rust::grid::Grid;
 ///
-/// let grid = UnsizedGrid::from(vec![vec![1, 2, 3], vec![4, 5, 6]]);
-/// let grid_slice = GridSlice::new(&grid, 0..=1, 0..=0).unwrap();
+/// let grid = UnsizedGrid::from(vec![
+///         vec![1,  2,  3,  4],
+///         vec![5,  6,  7,  8],
+///         vec![9,  10, 11, 12],
+///         vec![13, 14, 15, 16]
+/// ]);
 ///
-/// assert_eq!(grid_slice.get(&Coordinate::new(0, 0)), Some(&1));
-/// assert_eq!(grid_slice.get(&Coordinate::new(1, 2)), None);
+/// let grid_slice = GridSlice::new(&grid, 1..=2, 1..=2).unwrap();
+///
+/// assert_eq!(grid_slice.get(&Coordinate::new(0, 0)), Some(&6));
+/// assert_eq!(grid_slice.get(&Coordinate::new(1, 0)), Some(&10));
+/// assert_eq!(grid_slice.get(&Coordinate::new(0, 1)), Some(&7));
+/// assert_eq!(grid_slice.get(&Coordinate::new(1, 1)), Some(&11));
 /// assert_eq!(grid_slice.get(&Coordinate::new(2, 0)), None);
 /// ```
 #[derive(Debug, Eq, PartialEq, Clone)]
@@ -63,11 +71,19 @@ where
     /// use aoc_utils_rust::coordinate_system::Coordinate;
     /// use aoc_utils_rust::grid::Grid;
     ///
-    /// let grid = UnsizedGrid::from(vec![vec![1, 2, 3], vec![4, 5, 6]]);
-    /// let grid_slice = GridSlice::new(&grid, 0..=1, 0..=1).unwrap();
+    /// let grid = UnsizedGrid::from(vec![
+    ///         vec![1,  2,  3,  4],
+    ///         vec![5,  6,  7,  8],
+    ///         vec![9,  10, 11, 12],
+    ///         vec![13, 14, 15, 16]
+    /// ]);
     ///
-    /// assert_eq!(grid_slice.get(&Coordinate::new(0, 0)), Some(&1));
-    /// assert_eq!(grid_slice.get(&Coordinate::new(1, 1)), Some(&5));
+    /// let grid_slice = GridSlice::new(&grid, 1..=2, 1..=2).unwrap();
+    ///
+    /// assert_eq!(grid_slice.get(&Coordinate::new(0, 0)), Some(&6));
+    /// assert_eq!(grid_slice.get(&Coordinate::new(1, 0)), Some(&10));
+    /// assert_eq!(grid_slice.get(&Coordinate::new(0, 1)), Some(&7));
+    /// assert_eq!(grid_slice.get(&Coordinate::new(1, 1)), Some(&11));
     /// assert_eq!(grid_slice.get(&Coordinate::new(2, 0)), None);
     /// ```
     pub fn new(
@@ -75,24 +91,36 @@ where
         row: RangeInclusive<usize>,
         col: RangeInclusive<usize>,
     ) -> Result<Self, ()> {
-        if grid
-            .get(&Coordinate::new(*row.start() as i32, *col.start() as i32))
-            .is_some()
-        {
-            if grid
-                .get(&Coordinate::new(*row.end() as i32, *col.end() as i32))
-                .is_some()
-            {
-                return Ok(Self {
-                    grid,
-                    row,
-                    col,
-                    _marker: PhantomData,
-                });
-            }
+        if Self::is_valid_range(grid, row.clone(), col.clone()) {
+            Ok(Self {
+                grid,
+                row,
+                col,
+                _marker: PhantomData,
+            })
+        } else {
+            Err(())
         }
+    }
 
-        Err(())
+    #[inline]
+    fn is_valid_slice_row(&self, row: usize) -> bool {
+        (0..self.num_rows()).contains(&row)
+    }
+
+    #[inline]
+    fn is_valid_slice_col(&self, col: usize) -> bool {
+        (0..self.num_cols()).contains(&col)
+    }
+
+    /// Check if the given range (row & col) is valid for the grid.
+    #[inline]
+    fn is_valid_range(grid: &G, row: RangeInclusive<usize>, col: RangeInclusive<usize>) -> bool
+    where
+        G: Grid<T>,
+    {
+        grid.is_valid_coordinate(&Coordinate::new(*row.start() as i32, *col.start() as i32))
+            && grid.is_valid_coordinate(&Coordinate::new(*row.end() as i32, *col.end() as i32))
     }
 
     /// Creates a new `GridView` from an existing `GridView` and new row/column ranges.
@@ -113,38 +141,89 @@ where
     /// use aoc_utils_rust::coordinate_system::Coordinate;
     /// use aoc_utils_rust::grid::Grid;
     ///
-    /// let grid = UnsizedGrid::from(vec![vec![1, 2, 3], vec![4, 5, 6]]);
-    /// let grid_slice = GridSlice::new(&grid, 0..=0, 0..=0).unwrap();
-    /// let _ = GridSlice::from_slice(&grid_slice, 0..=2, 0..=0).unwrap_err(); // 0..=2 is out of bounds
-    /// let new_slice = GridSlice::from_slice(&grid_slice, 0..=0, 0..=0).unwrap();
+    /// let grid = UnsizedGrid::from(vec![
+    ///         vec![1,  2,  3,  4],
+    ///         vec![5,  6,  7,  8],
+    ///         vec![9,  10, 11, 12],
+    ///         vec![13, 14, 15, 16]
+    /// ]);
     ///
-    /// assert_eq!(new_slice.get(&Coordinate::new(0, 0)), Some(&1));
+    ///  
+    /// let _ = GridSlice::new(&grid, 1..=5, 1..=2).unwrap_err();
+    ///
+    ///  // [6,  7]
+    ///  // [10, 11]
+    ///  // [14, 15]
+    /// let first_slice = GridSlice::new(&grid, 1..=3, 1..=2).unwrap();
+    /// assert_eq!(first_slice.get(&first_slice.bottom_right_coordinate()), Some(&15));
+    ///
+    ///
+    ///  // [6,  7]
+    ///  // [10, 11]
+    /// let second_slice = GridSlice::from_slice(&first_slice, 0..=1, 0..=1).unwrap();
+    /// assert_eq!(second_slice.get(&Coordinate::new(0, 0)), Some(&6));
+    /// assert_eq!(second_slice.get(&second_slice.bottom_right_coordinate()), Some(&11));
+    ///
+    ///  //  [11]
+    ///  //  [15]
+    /// let new_slice = GridSlice::from_slice(&first_slice, 1..=2, 1..=1).unwrap();
+    ///
+    /// assert_eq!(new_slice.get(&Coordinate::new(0, 0)), Some(&11));
+    /// assert_eq!(new_slice.get(&Coordinate::new(1, 0)), Some(&15));
     /// assert_eq!(new_slice.get(&Coordinate::new(0, 1)), None);
-    /// assert_eq!(new_slice.get(&Coordinate::new(1, 0)), None);
     /// ```
     pub fn from_slice(
-        grid: &GridSlice<'grid, G, T>,
+        slice: &GridSlice<'grid, G, T>,
         row: RangeInclusive<usize>,
         col: RangeInclusive<usize>,
     ) -> Result<Self, ()> {
-        if grid
-            .get(&Coordinate::new(*row.start() as i32, *col.start() as i32))
-            .is_some()
-        {
-            if grid
-                .get(&Coordinate::new(*row.end() as i32, *col.end() as i32))
-                .is_some()
-            {
-                return Ok(Self {
-                    grid: grid.grid,
-                    row,
-                    col,
-                    _marker: PhantomData,
-                });
-            }
+        if Self::is_valid_range(slice.grid, row.clone(), col.clone()) {
+            // Normalize the range relative to the underlying index of backing grid of the given slice
+            let new_row = *slice.row.start() + *row.start()
+                ..=*slice.row.start() + *row.start() + row.size_hint().0 - 1;
+            let new_col = *slice.col.start() + *col.start()
+                ..=*slice.col.start() + *col.start() + col.size_hint().0 - 1;
+            Self::new(slice.grid, new_row, new_col)
+        } else {
+            Err(())
         }
+    }
+}
 
-        Err(())
+/// A type that represents an internal coordinate used to translate
+/// to the actual coordinate of the backing grid
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
+#[repr(transparent)]
+struct InternalCoordinate(Coordinate);
+
+impl InternalCoordinate {
+    fn from_slice_coordinate<G, T>(coordinate: &Coordinate, grid_slice: &GridSlice<G, T>) -> Self
+    where
+        G: Grid<T>,
+    {
+        let translated = Coordinate::new(
+            coordinate.i + *grid_slice.row.start() as i32,
+            coordinate.j + *grid_slice.col.start() as i32,
+        );
+        Self(translated)
+    }
+
+    fn to_slice_coordinate<G, T>(&self, grid_slice: &GridSlice<G, T>) -> Coordinate
+    where
+        G: Grid<T>,
+    {
+        Coordinate::new(
+            self.0.i - *grid_slice.row.start() as i32,
+            self.0.j - *grid_slice.col.start() as i32,
+        )
+    }
+}
+
+impl Deref for InternalCoordinate {
+    type Target = Coordinate;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
@@ -161,10 +240,16 @@ where
     /// use aoc_utils_rust::grid::grid_slice::GridSlice;
     /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
     ///
-    /// let grid = UnsizedGrid::from(vec![vec![1, 2, 3], vec![4, 5, 6]]);
-    /// let grid_slice = GridSlice::new(&grid, 0..=1, 0..=2).unwrap();
+    /// let grid = UnsizedGrid::from(vec![
+    ///         vec![1,  2,  3,  4],
+    ///         vec![5,  6,  7,  8],
+    ///         vec![9,  10, 11, 12],
+    ///         vec![13, 14, 15, 16]
+    /// ]);
     ///
-    /// assert_eq!(grid_slice.num_rows(), 2);
+    /// let grid_slice = GridSlice::new(&grid, 1..=3, 1..=2).unwrap();
+    ///
+    /// assert_eq!(grid_slice.num_rows(), 3);
     /// ```
     fn num_rows(&self) -> usize {
         self.row.size_hint().0
@@ -179,8 +264,14 @@ where
     /// use aoc_utils_rust::grid::grid_slice::GridSlice;
     /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
     ///
-    /// let grid = UnsizedGrid::from(vec![vec![1, 2, 3], vec![4, 5, 6]]);
-    /// let grid_slice = GridSlice::new(&grid, 0..=1, 0..=2).unwrap();
+    /// let grid = UnsizedGrid::from(vec![
+    ///         vec![1,  2,  3,  4],
+    ///         vec![5,  6,  7,  8],
+    ///         vec![9,  10, 11, 12],
+    ///         vec![13, 14, 15, 16]
+    /// ]);
+    ///
+    /// let grid_slice = GridSlice::new(&grid, 1..=2, 1..=3).unwrap();
     ///
     /// assert_eq!(grid_slice.num_cols(), 3);
     /// ```
@@ -203,15 +294,27 @@ where
     /// use aoc_utils_rust::grid::grid_slice::GridSlice;
     /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
     ///
-    /// let grid = UnsizedGrid::from(vec![vec![1, 2, 3], vec![4, 5, 6]]);
-    /// let grid_slice = GridSlice::new(&grid, 0..=1, 0..=2).unwrap();
+    /// let grid = UnsizedGrid::from(vec![
+    ///         vec![1,  2,  3,  4],
+    ///         vec![5,  6,  7,  8],
+    ///         vec![9,  10, 11, 12],
+    ///         vec![13, 14, 15, 16]
+    /// ]);
     ///
-    /// assert_eq!(grid_slice.get_row(0), Some([1, 2, 3].as_slice()));
-    /// assert_eq!(grid_slice.get_row(1), Some([4, 5, 6].as_slice()));
+    /// let grid_slice = GridSlice::new(&grid, 1..=2, 1..=2).unwrap();
+    ///
+    /// assert_eq!(grid_slice.get_row(0), Some([6, 7].as_slice()));
+    /// assert_eq!(grid_slice.get_row(1), Some([10, 11].as_slice()));
     /// ```
     fn get_row(&self, row: usize) -> Option<&[T]> {
-        if self.row.contains(&row) {
-            self.grid.get_row(row).map(|row| &row[self.col.clone()])
+        let slice_row =
+            InternalCoordinate::from_slice_coordinate(&Coordinate::new(row as i32, 0), self).i
+                as usize;
+
+        if self.is_valid_slice_row(row) {
+            self.grid
+                .get_row(slice_row)
+                .map(|row| &row[self.col.clone()])
         } else {
             None
         }
@@ -233,71 +336,28 @@ where
     /// use aoc_utils_rust::coordinate_system::Coordinate;
     /// use aoc_utils_rust::grid::Grid;
     ///
-    /// let grid = UnsizedGrid::from(vec![vec![1, 2, 3], vec![4, 5, 6]]);
-    /// let grid_slice = GridSlice::new(&grid, 0..=1, 0..=0).unwrap();
+    /// let grid = UnsizedGrid::from(vec![
+    ///         vec![1,  2,  3,  4],
+    ///         vec![5,  6,  7,  8],
+    ///         vec![9,  10, 11, 12],
+    ///         vec![13, 14, 15, 16]
+    /// ]);
     ///
-    /// assert_eq!(grid_slice.get(&Coordinate::new(0, 0)), Some(&1));
+    /// let grid_slice = GridSlice::new(&grid, 1..=2, 1..=2).unwrap();
+    ///
+    /// assert_eq!(grid_slice.get(&Coordinate::new(0, 0)), Some(&6));
+    /// assert_eq!(grid_slice.get(&Coordinate::new(1, 0)), Some(&10));
+    /// assert_eq!(grid_slice.get(&Coordinate::new(1, 1)), Some(&11));
     /// assert_eq!(grid_slice.get(&Coordinate::new(1, 2)), None);
+    /// assert_eq!(grid_slice.get(&Coordinate::new(-1, 2)), None);
     /// ```
     fn get(&self, coordinate: &Coordinate) -> Option<&T> {
         if !self.is_valid_coordinate(coordinate) {
             return None;
         }
-        self.grid.get(coordinate)
-    }
-
-    /// Checks if the specified position is within the bounds of the view.
-    ///
-    /// # Arguments
-    /// * `position` - The coordinate to check.
-    ///
-    /// # Returns
-    /// `true` if the position is within the view, `false` otherwise.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use aoc_utils_rust::grid::grid_slice::GridSlice;
-    /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
-    /// use aoc_utils_rust::coordinate_system::Coordinate;
-    /// use aoc_utils_rust::grid::Grid;
-    ///
-    /// let grid = UnsizedGrid::from(vec![vec![1, 2, 3], vec![4, 5, 6]]);
-    /// let grid_slice = GridSlice::new(&grid, 0..=1, 0..=2).unwrap();
-    ///
-    /// assert!(grid_slice.is_valid_coordinate(&Coordinate::new(0, 0)));
-    /// assert!(grid_slice.is_valid_coordinate(&Coordinate::new(1, 2)));
-    /// assert!(!grid_slice.is_valid_coordinate(&Coordinate::new(2, 0)));
-    /// assert!(!grid_slice.is_valid_coordinate(&Coordinate::new(0, 3)));
-    /// ```
-    fn is_valid_coordinate(&self, coordinate: &Coordinate) -> bool {
-        self.row.contains(&(coordinate.i as usize)) && self.col.contains(&(coordinate.j as usize))
-    }
-
-    /// Returns the starting coordinate of the grid slice.
-    ///
-    /// The starting coordinate is determined by the beginning of the row and column ranges.
-    ///
-    /// # Returns
-    ///
-    /// A `Coordinate` representing the starting position of the grid slice.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use aoc_utils_rust::grid::grid_slice::GridSlice;
-    /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
-    /// use aoc_utils_rust::coordinate_system::Coordinate;
-    /// use aoc_utils_rust::grid::Grid;
-    /// 
-    ///
-    /// let grid = UnsizedGrid::from(vec![vec![1, 2, 3], vec![4, 5, 6]]);
-    /// let grid_slice = GridSlice::new(&grid, 0..=1, 0..=2).unwrap();
-    ///
-    /// assert_eq!(grid_slice.start_coordinate(), Coordinate::new(0, 0));
-    /// ```
-    fn start_coordinate(&self) -> Coordinate {
-        Coordinate::new(*self.row.start() as i32, *self.col.start() as i32)
+        self.grid.get(&*InternalCoordinate::from_slice_coordinate(
+            coordinate, self,
+        ))
     }
 
     /// Returns an iterator over the elements in the view.
@@ -312,12 +372,12 @@ where
     /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
     /// use aoc_utils_rust::coordinate_system::Coordinate;
     /// use aoc_utils_rust::grid::Grid;
-    /// 
+    ///
     ///
     /// let grid = UnsizedGrid::from(vec![
-    ///         vec![1, 2, 3, 4],
-    ///         vec![5, 6, 7, 8],
-    ///         vec![9, 10, 11, 12],
+    ///         vec![1,  2,  3,  4],
+    ///         vec![5,  6,  7,  8],
+    ///         vec![9,  10, 11, 12],
     ///         vec![13, 14, 15, 16]
     /// ]);
     ///
@@ -336,11 +396,12 @@ where
     ///
     /// assert_eq!(iter.next(), None);
     /// ```
+    #[inline]
     fn iter<'a>(&'a self) -> GridIter<'a, Self, T>
     where
         T: 'a,
         Self: Sized,
     {
-        GridIter::new(self, *self.row.start())
+        GridIter::new(self)
     }
-} 
+}

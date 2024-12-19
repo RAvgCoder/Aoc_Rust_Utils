@@ -250,7 +250,7 @@ impl<T, const ROW: usize, const COL: usize> Grid<T> for SizedGrid<T, ROW, COL> {
     where
         T: 'a,
     {
-        GridIter::new(self, 0)
+        GridIter::new(self)
     }
 }
 

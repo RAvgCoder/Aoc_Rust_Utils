@@ -66,20 +66,12 @@ pub trait Grid<T> {
             && (0..self.num_cols()).contains(&(coordinate.j as usize))
     }
 
-    /// Returns the coordinate of the last element in the grid.
+    /// Returns the coordinate of the bottom right element in the grid.
     ///
     /// # Returns
-    /// A `Coordinate` representing the position of the last element in the grid.
-    fn end_coordinate(&self) -> Coordinate {
+    /// A `Coordinate` representing the position of the bottom right element in the grid.
+    fn bottom_right_coordinate(&self) -> Coordinate {
         Coordinate::new((self.num_rows() - 1) as i32, (self.num_cols() - 1) as i32)
-    }    
-    
-    /// Returns the coordinate of the last element in the grid.
-    ///
-    /// # Returns
-    /// A `Coordinate` representing the position of the last element in the grid.
-    fn start_coordinate(&self) -> Coordinate {
-        Coordinate::new(0, 0)
     }
 
     /// Returns an iterator over the elements of the grid.
@@ -185,8 +177,6 @@ pub mod iterators {
     {
         grid: &'a G,
         row: usize,
-        // Should never be public
-        internal_row_iter_count: usize,
         _marker: PhantomData<&'a T>,
     }
 
@@ -218,11 +208,10 @@ pub mod iterators {
         /// assert_eq!(first_element, (Coordinate::new(0, 0), &1));
         /// ```
         #[inline(always)]
-        pub(crate) fn new(grid: &'a G, start_row: usize) -> Self {
+        pub(crate) fn new(grid: &'a G) -> Self {
             Self {
                 grid,
-                row: start_row,
-                internal_row_iter_count: 0, // Always starts at zero
+                row: 0,
                 _marker: PhantomData,
             }
         }
@@ -256,8 +245,7 @@ pub mod iterators {
         #[inline(always)]
         fn next(&mut self) -> Option<Self::Item> {
             self.grid.get_row(self.row).map(|row| {
-                let row_iter = RowIter::new(row, self.internal_row_iter_count, 0);
-                self.internal_row_iter_count += 1;
+                let row_iter = RowIter::new(row, self.row, 0);
                 self.row += 1;
                 row_iter
             })

@@ -325,7 +325,7 @@ impl<T> Grid<T> for UnsizedGrid<T> {
     where
         T: 'a,
     {
-        GridIter::new(self, 0)
+        GridIter::new(self)
     }
 }
 

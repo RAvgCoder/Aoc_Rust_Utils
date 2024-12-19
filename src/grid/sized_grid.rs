@@ -27,6 +27,7 @@ use std::fmt::{Debug, Formatter};
 /// assert!(!grid.is_valid_coordinate(&Coordinate::new(2, 3)));
 /// ```
 #[repr(transparent)]
+#[derive(Clone)]
 pub struct SizedGrid<T, const ROW: usize, const COL: usize> {
     pub matrix: [[T; COL]; ROW],
 }

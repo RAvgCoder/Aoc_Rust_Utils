@@ -42,6 +42,7 @@ use std::slice::IterMut;
 /// assert_eq!(grid.get(&coordinate), Some(&10));
 /// ```
 #[repr(transparent)]
+#[derive(Clone)]
 pub struct UnsizedGrid<T> {
     matrix: Box<[Box<[T]>]>,
 }
@@ -318,7 +319,7 @@ impl<T> Grid<T> for UnsizedGrid<T> {
     /// let invalid_coordinate = Coordinate::new(2, 3);
     /// assert_eq!(grid.get(&invalid_coordinate), None);
     /// ```
-    #[inline(always)]
+    #[inline]
     fn get(&self, coordinate: &Coordinate) -> Option<&T> {
         if self.is_valid_coordinate(coordinate) {
             Some(&self.matrix[coordinate.i as usize][coordinate.j as usize])

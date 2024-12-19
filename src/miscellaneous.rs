@@ -19,8 +19,8 @@ where
         Some(file_name.unwrap_or("grid_output.txt")),
         |file| match &own_func {
             Some(f) => {
-                for row in 0..grid.num_rows() {
-                    for e in grid.get_row(row).unwrap() {
+                for row in grid.iter() {
+                    for (_, e) in row {
                         write!(file, "{}", f(e))?;
                     }
                     writeln!(file)?;

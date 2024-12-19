@@ -160,47 +160,6 @@ impl<T> UnsizedGrid<T> {
     pub fn iter_mut(&mut self) -> GridIterMut<'_, T> {
         GridIterMut::new(self)
     }
-
-    /// Returns an iterator over the elements of the grid.
-    ///
-    /// # Type Parameters
-    /// * `'a` - The lifetime of the references to the grid and its elements.
-    ///
-    /// # Returns
-    /// A `GridIter` that iterates over the elements of the grid.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
-    /// use aoc_utils_rust::grid::iterators::GridIter;
-    /// use aoc_utils_rust::coordinate_system::Coordinate;
-    /// use aoc_utils_rust::grid::Grid;
-    ///
-    /// let grid = UnsizedGrid::from(vec![vec![1, 2, 3], vec![4, 5, 6]]);
-    /// let mut iter = grid.iter();
-    ///
-    /// let mut row_iter = iter.next().unwrap();
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 0), &1)));
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 1), &2)));
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 2), &3)));
-    /// assert_eq!(row_iter.next(), None);
-    ///
-    /// let mut row_iter = iter.next().unwrap();
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 0), &4)));
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 1), &5)));
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 2), &6)));
-    /// assert_eq!(row_iter.next(), None);
-    ///
-    /// assert_eq!(iter.next(), None);
-    /// ```
-    #[inline(always)]
-    pub fn iter<'a>(&'a self) -> GridIter<'a, Self, T>
-    where
-        T: 'a,
-    {
-        GridIter::new(self, 0)
-    }
 }
 
 impl<T: Debug> Debug for UnsizedGrid<T> {
@@ -326,6 +285,47 @@ impl<T> Grid<T> for UnsizedGrid<T> {
         } else {
             None
         }
+    }
+
+    /// Returns an iterator over the elements of the grid.
+    ///
+    /// # Type Parameters
+    /// * `'a` - The lifetime of the references to the grid and its elements.
+    ///
+    /// # Returns
+    /// A `GridIter` that iterates over the elements of the grid.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
+    /// use aoc_utils_rust::grid::iterators::GridIter;
+    /// use aoc_utils_rust::coordinate_system::Coordinate;
+    /// use aoc_utils_rust::grid::Grid;
+    ///
+    /// let grid = UnsizedGrid::from(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+    /// let mut iter = grid.iter();
+    ///
+    /// let mut row_iter = iter.next().unwrap();
+    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 0), &1)));
+    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 1), &2)));
+    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 2), &3)));
+    /// assert_eq!(row_iter.next(), None);
+    ///
+    /// let mut row_iter = iter.next().unwrap();
+    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 0), &4)));
+    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 1), &5)));
+    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 2), &6)));
+    /// assert_eq!(row_iter.next(), None);
+    ///
+    /// assert_eq!(iter.next(), None);
+    /// ```
+    #[inline(always)]
+    fn iter<'a>(&'a self) -> GridIter<'a, Self, T>
+    where
+        T: 'a,
+    {
+        GridIter::new(self, 0)
     }
 }
 

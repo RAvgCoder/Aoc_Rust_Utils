@@ -70,9 +70,29 @@ pub trait Grid<T> {
     ///
     /// # Returns
     /// A `Coordinate` representing the position of the last element in the grid.
-    fn last_coordinate(&self) -> Coordinate {
+    fn end_coordinate(&self) -> Coordinate {
         Coordinate::new((self.num_rows() - 1) as i32, (self.num_cols() - 1) as i32)
+    }    
+    
+    /// Returns the coordinate of the last element in the grid.
+    ///
+    /// # Returns
+    /// A `Coordinate` representing the position of the last element in the grid.
+    fn start_coordinate(&self) -> Coordinate {
+        Coordinate::new(0, 0)
     }
+
+    /// Returns an iterator over the elements of the grid.
+    ///
+    /// # Type Parameters
+    /// * `'a` - The lifetime of the references to the grid and its elements.
+    ///
+    /// # Returns
+    /// A `GridIter` that iterates over the elements of the grid.
+    fn iter<'a>(&'a self) -> GridIter<'a, Self, T>
+    where
+        T: 'a,
+        Self: Sized;
 }
 
 /// The `GridMut` trait extends the `Grid` trait to provide mutable access to the grid elements.

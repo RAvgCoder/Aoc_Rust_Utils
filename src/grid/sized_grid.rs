@@ -116,32 +116,6 @@ impl<T, const ROW: usize, const COL: usize> SizedGrid<T, ROW, COL> {
             matrix: std::array::from_fn(|_| std::array::from_fn(|_| default.clone())),
         }
     }
-
-    /// Creates an iterator over the grid.
-    ///
-    /// # Returns
-    ///
-    /// A `GridIter` over the grid.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use aoc_utils_rust::grid::Grid;
-    /// use self::aoc_utils_rust::grid::sized_grid::SizedGrid;
-    /// use self::aoc_utils_rust::coordinate_system::Coordinate;
-    ///
-    /// let grid = SizedGrid::<i32, 2, 3>::from([[1, 2, 3], [4, 5, 6]]);
-    /// let mut iter = grid.iter();
-    /// let mut first_row = iter.next().unwrap();
-    /// let first_element = first_row.next().unwrap();
-    /// assert_eq!(first_element, (Coordinate::new(0, 0), &1));
-    /// ```
-    pub fn iter<'a>(&'a self) -> GridIter<'a, Self, T>
-    where
-        T: 'a,
-    {
-        GridIter::new(self, 0)
-    }
 }
 
 impl<T: Debug, const ROW: usize, const COL: usize> Debug for SizedGrid<T, ROW, COL> {
@@ -244,13 +218,39 @@ impl<T, const ROW: usize, const COL: usize> Grid<T> for SizedGrid<T, ROW, COL> {
     /// assert_eq!(grid.get(&Coordinate::new(0, 1)), Some(&2));
     /// assert_eq!(grid.get(&Coordinate::new(2, 3)), None);
     /// ```
-    #[inline(always)]
+    #[inline]
     fn get(&self, position: &Coordinate) -> Option<&T> {
         if self.is_valid_coordinate(position) {
             Some(&self.matrix[position.i as usize][position.j as usize])
         } else {
             None
         }
+    }
+
+    /// Creates an iterator over the grid.
+    ///
+    /// # Returns
+    ///
+    /// A `GridIter` over the grid.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use aoc_utils_rust::grid::Grid;
+    /// use self::aoc_utils_rust::grid::sized_grid::SizedGrid;
+    /// use self::aoc_utils_rust::coordinate_system::Coordinate;
+    ///
+    /// let grid = SizedGrid::<i32, 2, 3>::from([[1, 2, 3], [4, 5, 6]]);
+    /// let mut iter = grid.iter();
+    /// let mut first_row = iter.next().unwrap();
+    /// let first_element = first_row.next().unwrap();
+    /// assert_eq!(first_element, (Coordinate::new(0, 0), &1));
+    /// ```
+    fn iter<'a>(&'a self) -> GridIter<'a, Self, T>
+    where
+        T: 'a,
+    {
+        GridIter::new(self, 0)
     }
 }
 

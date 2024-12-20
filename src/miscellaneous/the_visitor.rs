@@ -135,8 +135,13 @@ where
     /// visitor.mark_visited(Coordinate::new(1, 1));
     /// ```
     #[inline]
-    pub fn mark_visited(&mut self, coord: Coordinate) {
-        *self.backing_grid.get_mut(&coord).unwrap() = self.curr_time;
+    pub fn mark_visited(&mut self, coord: Coordinate) -> bool {
+        if !self.has_visited(coord) {
+            *self.backing_grid.get_mut(&coord).unwrap() = self.curr_time;
+            true
+        } else {
+            false
+        }
     }
 
     /// Checks if the specified coordinate has been visited.

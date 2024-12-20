@@ -72,6 +72,8 @@ pub struct Coordinate {
 }
 
 impl Coordinate {
+    pub const ORIGIN: Self = Self { i: 0, j: 0 };
+
     /// Creates a new `Coordinate`.
     ///
     /// # Arguments

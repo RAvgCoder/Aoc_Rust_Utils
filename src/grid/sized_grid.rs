@@ -33,40 +33,6 @@ pub struct SizedGrid<T, const ROW: usize, const COL: usize> {
 }
 
 impl<T, const ROW: usize, const COL: usize> SizedGrid<T, ROW, COL> {
-    /// Creates a mutable iterator over the grid.
-    ///
-    /// # Returns
-    ///
-    /// A `GridIterMut` over the grid.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use aoc_utils_rust::grid::sized_grid::SizedGrid;
-    /// use aoc_utils_rust::grid::GridMut;
-    /// use aoc_utils_rust::coordinate_system::Coordinate;
-    ///
-    /// let mut grid = SizedGrid::<i32, 2, 3>::from([[1, 2, 3], [4, 5, 6]]);
-    /// let mut iter = grid.iter_mut();
-    ///
-    /// let mut row_iter = iter.next().unwrap();
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 0), &mut 1)));
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 1), &mut 2)));
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 2), &mut 3)));
-    /// assert_eq!(row_iter.next(), None);
-    ///
-    /// let mut row_iter = iter.next().unwrap();
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 0), &mut 4)));
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 1), &mut 5)));
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 2), &mut 6)));
-    /// assert_eq!(row_iter.next(), None);
-    ///
-    /// assert_eq!(iter.next(), None);
-    /// ```
-    pub fn iter_mut(&mut self) -> GridIterMut<'_, T, ROW, COL> {
-        GridIterMut::new(self)
-    }
-
     /// Creates a new `SizedGrid` from a 2D array.
     ///
     ///
@@ -115,6 +81,50 @@ impl<T, const ROW: usize, const COL: usize> SizedGrid<T, ROW, COL> {
         Self {
             matrix: std::array::from_fn(|_| std::array::from_fn(|_| default.clone())),
         }
+    }
+
+    #[inline(always)]
+    pub fn with_size_from(_: &SizedGrid<T, ROW, COL>, default: T) -> Self
+    where
+        T: Clone,
+    {
+        Self {
+            matrix: std::array::from_fn(|_| std::array::from_fn(|_| default.clone())),
+        }
+    }
+
+    /// Creates a mutable iterator over the grid.
+    ///
+    /// # Returns
+    ///
+    /// A `GridIterMut` over the grid.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use aoc_utils_rust::grid::sized_grid::SizedGrid;
+    /// use aoc_utils_rust::grid::GridMut;
+    /// use aoc_utils_rust::coordinate_system::Coordinate;
+    ///
+    /// let mut grid = SizedGrid::<i32, 2, 3>::from([[1, 2, 3], [4, 5, 6]]);
+    /// let mut iter = grid.iter_mut();
+    ///
+    /// let mut row_iter = iter.next().unwrap();
+    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 0), &mut 1)));
+    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 1), &mut 2)));
+    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 2), &mut 3)));
+    /// assert_eq!(row_iter.next(), None);
+    ///
+    /// let mut row_iter = iter.next().unwrap();
+    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 0), &mut 4)));
+    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 1), &mut 5)));
+    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 2), &mut 6)));
+    /// assert_eq!(row_iter.next(), None);
+    ///
+    /// assert_eq!(iter.next(), None);
+    /// ```
+    pub fn iter_mut(&mut self) -> GridIterMut<'_, T, ROW, COL> {
+        GridIterMut::new(self)
     }
 }
 

@@ -1,3 +1,5 @@
+pub mod the_visitor;
+
 use crate::grid::Grid;
 use std::fmt::{Debug, Display};
 use std::fs::{File, OpenOptions};

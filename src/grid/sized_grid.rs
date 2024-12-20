@@ -84,7 +84,7 @@ impl<T, const ROW: usize, const COL: usize> SizedGrid<T, ROW, COL> {
     }
 
     #[inline(always)]
-    pub fn with_size_from(_: &SizedGrid<T, ROW, COL>, default: T) -> Self
+    pub fn with_size_from<O>(_: &SizedGrid<O, ROW, COL>, default: T) -> Self
     where
         T: Clone,
     {

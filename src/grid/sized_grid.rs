@@ -83,6 +83,35 @@ impl<T, const ROW: usize, const COL: usize> SizedGrid<T, ROW, COL> {
         }
     }
 
+    /// Creates a new `SizedGrid` from a 2D array.
+    ///
+    /// # Arguments
+    ///
+    /// * `grid` - A 2D array representing the grid.
+    ///
+    /// # Returns
+    ///
+    /// A new `SizedGrid` instance.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use aoc_utils_rust::coordinate_system::Coordinate;
+    /// use aoc_utils_rust::grid::Grid;
+    /// use aoc_utils_rust::grid::sized_grid::SizedGrid;
+    ///
+    /// let grid = SizedGrid::<i32, 2, 3>::from([[1, 2, 3], [4, 5, 6]]);
+    /// assert_eq!(grid.num_rows(), 2);
+    /// assert_eq!(grid.num_cols(), 3);
+    /// assert_eq!(grid.get(&Coordinate::new(0, 1)), Some(&2));
+    /// assert!(grid.is_valid_coordinate(&Coordinate::new(1, 2)));
+    /// assert!(!grid.is_valid_coordinate(&Coordinate::new(2, 3)));
+    /// ```
+    #[inline(always)]
+    pub const fn from(grid: [[T; COL]; ROW]) -> Self {
+        Self { matrix: grid }
+    }
+
     #[inline(always)]
     pub fn with_size_from<O>(_: &SizedGrid<O, ROW, COL>, default: T) -> Self
     where
@@ -105,8 +134,7 @@ impl<T, const ROW: usize, const COL: usize> SizedGrid<T, ROW, COL> {
     /// use aoc_utils_rust::grid::sized_grid::SizedGrid;
     /// use aoc_utils_rust::grid::GridMut;
     /// use aoc_utils_rust::coordinate_system::Coordinate;
-    ///
-    /// let mut grid = SizedGrid::<i32, 2, 3>::from([[1, 2, 3], [4, 5, 6]]);
+    /// let mut grid = SizedGrid::from([[1, 2, 3], [4, 5, 6]]);
     /// let mut iter = grid.iter_mut();
     ///
     /// let mut row_iter = iter.next().unwrap();
@@ -438,12 +466,5 @@ pub mod iterator {
                 None
             }
         }
-    }
-}
-
-impl<T, const ROW: usize, const COL: usize> From<[[T; COL]; ROW]> for SizedGrid<T, ROW, COL> {
-    #[inline(always)]
-    fn from(grid: [[T; COL]; ROW]) -> Self {
-        Self { matrix: grid }
     }
 }

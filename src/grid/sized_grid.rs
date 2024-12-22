@@ -122,6 +122,74 @@ impl<T, const ROW: usize, const COL: usize> SizedGrid<T, ROW, COL> {
         }
     }
 
+    #[inline(always)]
+    pub const fn get(&self, position: &Coordinate) -> Option<&T> {
+        if self.is_valid_coordinate(position) {
+            Some(&self.matrix[position.i as usize][position.j as usize])
+        } else {
+            None
+        }
+    }
+
+    /// Returns a reference to the element at the specified position without bounds checking.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because it does not perform bounds checking. The caller must ensure
+    /// that the position is within the bounds of the grid.
+    ///
+    /// # Arguments
+    ///
+    /// * `position` - The position of the element.
+    ///
+    /// # Returns
+    ///
+    /// A reference to the element at the specified position.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the position is out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use aoc_utils_rust::coordinate_system::Coordinate;
+    /// use aoc_utils_rust::grid::sized_grid::SizedGrid;
+    ///
+    /// let grid = SizedGrid::<i32, 2, 3>::from([[1, 2, 3], [4, 5, 6]]);
+    /// let coordinate = Coordinate::new(0, 1);
+    ///
+    /// // Safety: We know that the coordinate (0, 1) is within the bounds of the grid.
+    /// let value = unsafe { grid.get_unchecked(&coordinate) };
+    /// assert_eq!(*value, 2);
+    ///
+    /// // This will panic because the coordinate is out of bounds.
+    /// // let invalid_coordinate = Coordinate::new(3, 3);
+    /// // let invalid_value = unsafe { grid.get_unchecked(&invalid_coordinate) };
+    /// ```
+    #[inline(always)]
+    pub const unsafe fn get_unchecked(&self, position: &Coordinate) -> &T {
+        &self.matrix[position.i as usize][position.j as usize]
+    }
+
+    #[inline(always)]
+    pub const fn is_valid_coordinate(&self, coordinate: &Coordinate) -> bool {
+        0 <= coordinate.i
+            && coordinate.i < ROW as i32
+            && 0 <= coordinate.j
+            && coordinate.j < COL as i32
+    }
+
+    #[inline(always)]
+    pub const fn num_rows(&self) -> usize {
+        ROW
+    }
+
+    #[inline(always)]
+    pub const fn num_cols(&self) -> usize {
+        COL
+    }
+
     /// Creates a mutable iterator over the grid.
     ///
     /// # Returns
@@ -189,7 +257,7 @@ impl<T, const ROW: usize, const COL: usize> Grid<T> for SizedGrid<T, ROW, COL> {
     /// ```
     #[inline(always)]
     fn num_rows(&self) -> usize {
-        ROW
+        self.num_rows()
     }
 
     /// Returns the number of columns in the grid.
@@ -208,7 +276,7 @@ impl<T, const ROW: usize, const COL: usize> Grid<T> for SizedGrid<T, ROW, COL> {
     /// assert_eq!(grid.num_cols(), 3);
     /// ```
     fn num_cols(&self) -> usize {
-        COL
+        self.num_cols()
     }
 
     /// Returns a reference to the row at the specified index.
@@ -258,11 +326,11 @@ impl<T, const ROW: usize, const COL: usize> Grid<T> for SizedGrid<T, ROW, COL> {
     /// ```
     #[inline]
     fn get(&self, position: &Coordinate) -> Option<&T> {
-        if self.is_valid_coordinate(position) {
-            Some(&self.matrix[position.i as usize][position.j as usize])
-        } else {
-            None
-        }
+        self.get(position)
+    }
+
+    fn is_valid_coordinate(&self, coordinate: &Coordinate) -> bool {
+        self.is_valid_coordinate(coordinate)
     }
 
     /// Creates an iterator over the grid.

@@ -208,7 +208,7 @@ pub mod iterators {
         /// assert_eq!(first_element, (Coordinate::new(0, 0), &1));
         /// ```
         #[inline(always)]
-        pub(crate) fn new(grid: &'a G) -> Self {
+        pub(crate) const fn new(grid: &'a G) -> Self {
             Self {
                 grid,
                 row: 0,
@@ -314,7 +314,7 @@ pub mod iterators {
         /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 0), &1)));
         /// ```
         #[inline(always)]
-        pub(crate) fn new(row_item: &'a [T], row: usize, col: usize) -> Self {
+        pub(crate) const fn new(row_item: &'a [T], row: usize, col: usize) -> Self {
             Self {
                 row_item,
                 row,

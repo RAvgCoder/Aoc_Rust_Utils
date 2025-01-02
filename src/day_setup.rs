@@ -111,8 +111,10 @@ Assertion Failed
 ----------------
 Expected: {:?}
 Found: {:?}
+Time Taken: {}
             "#,
-                        expected, result
+                        expected, result,
+                        Self::log_elapsed_time(elapsed_time)
                     );
                     std::process::exit(1);
                 }

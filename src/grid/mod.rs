@@ -250,6 +250,11 @@ pub mod iterators {
                 row_iter
             })
         }
+
+        fn size_hint(&self) -> (usize, Option<usize>) {
+            let remaining_rows = self.grid.num_rows() - self.row;
+            (remaining_rows, Some(remaining_rows))
+        }
     }
 
     /// An iterator over the elements of a row in a grid.
@@ -357,6 +362,11 @@ pub mod iterators {
                 None
             }
         }
+
+        fn size_hint(&self) -> (usize, Option<usize>) {
+            let remaining_cols = self.row_item.len() - self.col;
+            (remaining_cols, Some(remaining_cols))
+        }
     }
 
     /// An iterator over the elements of a row in a grid.
@@ -433,6 +443,11 @@ pub mod iterators {
             } else {
                 None
             }
+        }
+        
+        fn size_hint(&self) -> (usize, Option<usize>) {
+            let remaining_cols = self.row_item.len() - self.col;
+            (remaining_cols, Some(remaining_cols))
         }
     }
 }

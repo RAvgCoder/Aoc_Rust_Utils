@@ -89,21 +89,21 @@ impl<T> UnsizedGrid<T> {
     }
 
     /// Creates a new `UnsizedGrid` with the same dimensions as the provided grid,
-    /// initializing all elements to the provided default value.
+    /// transforming each element using the provided function.
     ///
     /// # Arguments
     ///
     /// * `grid` - A reference to a grid implementing the `Grid` trait, from which the dimensions are taken.
-    /// * `default` - The default value to initialize each element in the new grid.
+    /// * `transform_fn` - The function used to transform each element in the new grid.
     ///
     /// # Type Parameters
     ///
     /// * `O` - The type of elements stored in the provided grid.
-    /// * `T` - The type of elements stored in the new grid. Must implement the `Clone` trait.
+    /// * `F` - The transform function used to create elements of the new.
     ///
     /// # Returns
     ///
-    /// A new `UnsizedGrid` instance with the same dimensions as the provided grid and default values.
+    /// A new `UnsizedGrid` instance with the same dimensions as the provided grid and transformed values.
     ///
     /// # Examples
     ///
@@ -113,18 +113,44 @@ impl<T> UnsizedGrid<T> {
     /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
     ///
     /// let original_grid = UnsizedGrid::new(2, 3, 0);
-    /// let new_grid = UnsizedGrid::with_size_from(&original_grid, 1);
+    /// let new_grid = UnsizedGrid::transform_from(&original_grid, |_| 1);
     ///
     /// assert_eq!(new_grid.num_rows(), 2);
     /// assert_eq!(new_grid.num_cols(), 3);
     /// assert_eq!(new_grid.get(&Coordinate::new(0, 1)), Some(&1));
+    ///
+    /// /////////////////////////////////////////////////
+    /// let original_grid = UnsizedGrid::from(vec![
+    ///     vec![1, 2, 3],
+    ///     vec![4, 5, 6],
+    ///     vec![7, 8, 9],
+    /// ]);
+    ///
+    /// // The new grid will have the same dimensions as the original grid, but all elements will be multiplied by 2
+    /// // except the element at the origin which will be set to 0
+    /// let new_grid = UnsizedGrid::transform_from(&original_grid, |(coord, e)| {
+    ///     if coord == Coordinate::ORIGIN {
+    ///        0
+    ///     } else {
+    ///         *e * 2
+    ///     }
+    /// });
+    ///
+    /// assert_eq!(new_grid.num_rows(), 3);
+    /// assert_eq!(new_grid.num_cols(), 3);
+    /// assert_eq!(new_grid.get(&Coordinate::new(0, 0)), Some(&0));
+    /// assert_eq!(new_grid.get(&Coordinate::new(2, 2)), Some(&18));
     /// ```
     #[inline]
-    pub fn with_size_from<O>(grid: &impl Grid<O>, default: T) -> UnsizedGrid<T>
+    pub fn transform_from<O, F>(grid: &impl Grid<O>, transform_fn: F) -> UnsizedGrid<T>
     where
-        T: Clone,
+        F: Fn((Coordinate, &O)) -> T,
     {
-        Self::new(grid.num_rows(), grid.num_cols(), default)
+        UnsizedGrid::from(
+            grid.iter()
+                .map(|row| row.map(|e| transform_fn(e)).collect::<Box<[_]>>())
+                .collect::<Box<[_]>>(),
+        )
     }
 
     /// Creates an iterator over the grid which allows mutation of `T`.
@@ -510,9 +536,8 @@ where
     T: 'a,
 {
     pub(self) fn new(grid: &'a mut UnsizedGrid<T>) -> Self {
-        let enumerated_rows: Enumerate<IterMut<Box<[T]>>> = grid.matrix.iter_mut().enumerate();
         Self {
-            grid_rows: enumerated_rows,
+            grid_rows: grid.matrix.iter_mut().enumerate(),
             _marker: PhantomData,
         }
     }
@@ -555,11 +580,8 @@ where
     /// assert_eq!(iter.next(), None);
     /// ```
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some((row, row_item)) = self.grid_rows.next() {
-            let row_iter = RowIterMut::new(row_item.as_mut(), row);
-            Some(row_iter)
-        } else {
-            None
-        }
+        self.grid_rows
+            .next()
+            .map(|(row, row_item)| RowIterMut::new(row_item.as_mut(), row))
     }
 }

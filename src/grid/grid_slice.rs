@@ -108,11 +108,6 @@ where
         (0..self.num_rows()).contains(&row)
     }
 
-    #[inline]
-    fn is_valid_slice_col(&self, col: usize) -> bool {
-        (0..self.num_cols()).contains(&col)
-    }
-
     /// Check if the given range (row & col) is valid for the grid.
     #[inline]
     fn is_valid_range(grid: &G, row: RangeInclusive<usize>, col: RangeInclusive<usize>) -> bool
@@ -307,13 +302,12 @@ where
     /// assert_eq!(grid_slice.get_row(1), Some([10, 11].as_slice()));
     /// ```
     fn get_row(&self, row: usize) -> Option<&[T]> {
-        let slice_row =
-            InternalCoordinate::from_slice_coordinate(&Coordinate::new(row as i32, 0), self).i
-                as usize;
-
         if self.is_valid_slice_row(row) {
             self.grid
-                .get_row(slice_row)
+                .get_row(
+                    InternalCoordinate::from_slice_coordinate(&Coordinate::new(row as i32, 0), self)
+                        .i as usize,
+                )
                 .map(|row| &row[self.col.clone()])
         } else {
             None

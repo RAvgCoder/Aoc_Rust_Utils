@@ -613,7 +613,6 @@ impl<N, E> StaticGraph<N, E> {
     /// assert_eq!(ptrs.len(), 2);
     /// ```
     pub fn get_nodes_reachable_from(&self, static_node_ptr: StaticNodePtr) -> Box<[StaticNodePtr]> {
-        let mut count = 0;
         let mut visited = vec![false; self.nodes.len()];
         let mut queue = VecDeque::new();
 
@@ -624,7 +623,6 @@ impl<N, E> StaticGraph<N, E> {
                 continue;
             }
             visited[curr_node.idx] = true;
-            count += 1;
 
             for (neighbour, _) in self.neighbours_iter(curr_node) {
                 if !visited[neighbour.idx] {

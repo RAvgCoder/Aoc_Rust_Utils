@@ -1,6 +1,6 @@
 use crate::coordinate_system::Coordinate;
 use crate::grid::GridMut;
-use std::ops::Deref;
+use std::ops::{Deref, Not};
 
 /// A timer struct used for setting up a new visitor.
 #[repr(transparent)]
@@ -136,12 +136,33 @@ where
     /// ```
     #[inline]
     pub fn mark_visited(&mut self, coord: Coordinate) -> bool {
-        if !self.has_visited(coord) {
-            *self.backing_grid.get_mut(&coord).unwrap() = self.curr_time;
-            true
-        } else {
-            false
-        }
+        self.has_visited(coord)
+            .not()
+            .then(|| *self.backing_grid.get_mut(&coord).unwrap() = self.curr_time)
+            .is_some()
+    }
+
+    /// Unmarks the specified coordinate as visited by resetting the timer at that coordinate.
+    ///
+    /// # Arguments
+    /// * `coord` - The coordinate to unmark as visited.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use aoc_utils_rust::coordinate_system::Coordinate;
+    /// use aoc_utils_rust::grid::sized_grid::SizedGrid;
+    /// use aoc_utils_rust::miscellaneous::the_visitor::{TheVisitor, Timer};
+    ///
+    /// let mut grid = SizedGrid::from([[Timer::BLANK; 4]; 4]);
+    /// let mut visitor = TheVisitor::new(grid);
+    /// visitor.mark_visited(Coordinate::new(1, 1));
+    /// assert!(visitor.has_visited(Coordinate::new(1, 1)));
+    /// visitor.unmark_visited(Coordinate::new(1, 1));
+    /// assert!(!visitor.has_visited(Coordinate::new(1, 1)));
+    /// ```
+    pub fn unmark_visited(&mut self, coord: Coordinate) {
+        self.backing_grid.get_mut(&coord).unwrap().reset();
     }
 
     /// Checks if the specified coordinate has been visited.

@@ -194,13 +194,7 @@ where
 
     fn reset_grid(&mut self) {
         self.backing_grid
-            .iter()
-            .map(|row| row.map(|(coord, _)| coord))
-            .flatten()
-            .collect::<Vec<_>>()
-            .into_iter()
-            .for_each(|coord| {
-                self.backing_grid.get_mut(&coord).unwrap().reset();
-            });
+            .iter_mut()
+            .for_each(|row| row.for_each(|(_, timer)| timer.reset()));
     }
 }

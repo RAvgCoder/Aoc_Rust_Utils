@@ -1,6 +1,5 @@
 use crate::coordinate_system::Coordinate;
-use crate::grid::iterators::GridIter;
-use crate::grid::sized_grid::iterator::GridIterMut;
+use crate::grid::iterators::{GridIter, GridIterMut, RowIterMut};
 use crate::grid::{Grid, GridMut};
 use std::fmt::{Debug, Formatter};
 
@@ -188,39 +187,6 @@ impl<T, const ROW: usize, const COL: usize> SizedGrid<T, ROW, COL> {
     #[inline(always)]
     pub const fn num_cols(&self) -> usize {
         COL
-    }
-
-    /// Creates a mutable iterator over the grid.
-    ///
-    /// # Returns
-    ///
-    /// A `GridIterMut` over the grid.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use aoc_utils_rust::grid::sized_grid::SizedGrid;
-    /// use aoc_utils_rust::grid::GridMut;
-    /// use aoc_utils_rust::coordinate_system::Coordinate;
-    /// let mut grid = SizedGrid::from([[1, 2, 3], [4, 5, 6]]);
-    /// let mut iter = grid.iter_mut();
-    ///
-    /// let mut row_iter = iter.next().unwrap();
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 0), &mut 1)));
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 1), &mut 2)));
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 2), &mut 3)));
-    /// assert_eq!(row_iter.next(), None);
-    ///
-    /// let mut row_iter = iter.next().unwrap();
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 0), &mut 4)));
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 1), &mut 5)));
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 2), &mut 6)));
-    /// assert_eq!(row_iter.next(), None);
-    ///
-    /// assert_eq!(iter.next(), None);
-    /// ```
-    pub fn iter_mut(&mut self) -> GridIterMut<'_, T, ROW, COL> {
-        GridIterMut::new(self)
     }
 }
 
@@ -419,29 +385,20 @@ impl<T, const N: usize, const M: usize> GridMut<T> for SizedGrid<T, N, M> {
             None
         }
     }
-}
-pub mod iterator {
-    use crate::grid::iterators::RowIterMut;
-    use crate::grid::sized_grid::SizedGrid;
-    use std::iter::Enumerate;
-    use std::marker::PhantomData;
-    use std::slice::IterMut;
 
-    /// An iterator over the rows of a mutable `SizedGrid`.
+    /// Returns an iterator over the rows of the grid, allowing mutable access to each row.
     ///
-    /// # Type Parameters
+    /// # Returns
     ///
-    /// * `'a` - The lifetime of the references to the grid and its elements.
-    /// * `T` - The type of elements stored in the grid.
-    /// * `ROW` - The number of rows in the grid.
-    /// * `COL` - The number of columns in the grid.
+    /// A `GridIterMut` that iterates over the rows of the grid, allowing mutable access to each row.
     ///
     /// # Examples
     ///
     /// ```
     /// use aoc_utils_rust::grid::sized_grid::SizedGrid;
-    /// use aoc_utils_rust::grid::GridMut;
+    /// use aoc_utils_rust::grid::iterators::{GridIterMut, RowIterMut};
     /// use aoc_utils_rust::coordinate_system::Coordinate;
+    /// use aoc_utils_rust::grid::GridMut;
     ///
     /// let mut grid = SizedGrid::<i32, 2, 3>::from([[1, 2, 3], [4, 5, 6]]);
     /// let mut iter = grid.iter_mut();
@@ -460,79 +417,12 @@ pub mod iterator {
     ///
     /// assert_eq!(iter.next(), None);
     /// ```
-    pub struct GridIterMut<'a, T, const ROW: usize, const COL: usize>
-    where
-        T: 'a,
-    {
-        grid_rows: Enumerate<IterMut<'a, [T; COL]>>,
-        _marker: PhantomData<&'a mut T>,
-    }
-
-    impl<'a, T, const ROW: usize, const COL: usize> GridIterMut<'a, T, ROW, COL>
-    where
-        T: 'a,
-    {
-        /// Creates a new `GridIterMut` for the given `SizedGrid`.
-        ///
-        /// # Arguments
-        ///
-        /// * `grid` - A mutable reference to the `SizedGrid`.
-        ///
-        /// # Returns
-        ///
-        /// A new `GridIterMut` instance.
-        pub(super) fn new(grid: &'a mut SizedGrid<T, ROW, COL>) -> Self {
-            let enumerated_rows = grid.matrix.iter_mut().enumerate();
-            Self {
-                grid_rows: enumerated_rows,
-                _marker: PhantomData,
-            }
-        }
-    }
-
-    impl<'a, T, const ROW: usize, const COL: usize> Iterator for GridIterMut<'a, T, ROW, COL>
-    where
-        T: 'a,
-    {
-        type Item = RowIterMut<'a, T>;
-
-        /// Advances the iterator and returns the next row iterator.
-        ///
-        /// # Returns
-        ///
-        /// An `Option` containing the next `RowIterMut`, or `None` if there are no more rows.
-        ///
-        /// # Examples
-        ///
-        /// ```
-        /// use aoc_utils_rust::grid::sized_grid::SizedGrid;
-        /// use aoc_utils_rust::grid::GridMut;
-        /// use aoc_utils_rust::coordinate_system::Coordinate;
-        ///
-        /// let mut grid = SizedGrid::<i32, 2, 3>::from([[1, 2, 3], [4, 5, 6]]);
-        /// let mut iter = grid.iter_mut();
-        ///
-        /// let mut row_iter = iter.next().unwrap();
-        /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 0), &mut 1)));
-        /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 1), &mut 2)));
-        /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 2), &mut 3)));
-        /// assert_eq!(row_iter.next(), None);
-        ///
-        /// let mut row_iter = iter.next().unwrap();
-        /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 0), &mut 4)));
-        /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 1), &mut 5)));
-        /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 2), &mut 6)));
-        /// assert_eq!(row_iter.next(), None);
-        ///
-        /// assert_eq!(iter.next(), None);
-        /// ```
-        fn next(&mut self) -> Option<Self::Item> {
-            if let Some((row, row_item)) = self.grid_rows.next() {
-                let row_iter = RowIterMut::new(row_item.as_mut_slice(), row);
-                Some(row_iter)
-            } else {
-                None
-            }
-        }
+    fn iter_mut(&mut self) -> GridIterMut<T, impl Iterator<Item = RowIterMut<T>>> {
+        GridIterMut::new(
+            self.matrix
+                .iter_mut()
+                .enumerate()
+                .map(|(i, row)| RowIterMut::new(row, i)),
+        )
     }
 }

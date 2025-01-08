@@ -284,7 +284,7 @@ pub mod iterators {
         #[inline(always)]
         fn next(&mut self) -> Option<Self::Item> {
             self.grid.get_row(self.row).map(|row| {
-                let row_iter = RowIter::new(row, self.row, 0);
+                let row_iter = RowIter::new(row, self.row);
                 self.row += 1;
                 row_iter
             })
@@ -355,11 +355,11 @@ pub mod iterators {
         /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 0), &1)));
         /// ```
         #[inline(always)]
-        pub(crate) const fn new(row_item: &'a [T], row: usize, col: usize) -> Self {
+        pub(crate) const fn new(row_item: &'a [T], row: usize) -> Self {
             Self {
                 row_item,
                 row,
-                col,
+                col: 0,
                 _marker: PhantomData,
             }
         }
@@ -389,18 +389,19 @@ pub mod iterators {
         /// assert_eq!(row_iter.next(), None);
         /// ```
         fn next(&mut self) -> Option<Self::Item> {
-            if self.col < self.row_item.len() {
+            let items = std::mem::take(&mut self.row_item);
+            if let Some((item, rest)) = items.split_first() {
+                self.row_item = rest;
                 let coordinate = Coordinate::new(self.row as i32, self.col as i32);
-                let value = &self.row_item[self.col];
                 self.col += 1;
-                Some((coordinate, value))
+                Some((coordinate, item))
             } else {
                 None
             }
         }
 
         fn size_hint(&self) -> (usize, Option<usize>) {
-            let remaining_cols = self.row_item.len() - self.col;
+            let remaining_cols = self.row_item.len();
             (remaining_cols, Some(remaining_cols))
         }
     }

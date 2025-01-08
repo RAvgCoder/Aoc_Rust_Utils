@@ -485,6 +485,10 @@ pub mod iterators {
         fn next(&mut self) -> Option<Self::Item> {
             self.grid_rows.next()
         }
+
+        fn size_hint(&self) -> (usize, Option<usize>) {
+            self.grid_rows.size_hint()
+        }
     }
 
     /// An iterator over the elements of a row in a grid.

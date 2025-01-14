@@ -1,5 +1,6 @@
 use crate::coordinate_system::Coordinate;
 use crate::grid::GridMut;
+use std::fmt::{Debug, Formatter};
 use std::ops::{Deref, Not};
 
 /// A timer struct used for setting up a new visitor.
@@ -53,7 +54,7 @@ impl Timer {
 ///
 /// # Type Parameters
 /// * `G` - The type of the backing grid.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct TheVisitor<G> {
     backing_grid: G,
     curr_time: Timer,
@@ -196,5 +197,23 @@ where
         self.backing_grid
             .iter_mut()
             .for_each(|row| row.for_each(|(_, timer)| timer.reset()));
+    }
+}
+
+impl<G: GridMut<Timer>> Debug for TheVisitor<G> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        for row in self.backing_grid.iter() {
+            for (coord, timer) in row {
+                write!(
+                    f,
+                    "({},{})|{} ",
+                    coord.i,
+                    coord.j,
+                    if *timer == self.curr_time { "x" } else { "_" }
+                )?;
+            }
+            writeln!(f)?;
+        }
+        Ok(())
     }
 }

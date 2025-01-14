@@ -168,11 +168,7 @@ Time Taken: {}
     {
         let file_path = Self::get_file_path()
             .join("inputs")
-            .join(if day_num == 0 {
-                "Example".to_string()
-            } else {
-                format!("day{}", day_num)
-            })
+            .join(format!("day{}", day_num))
             .with_extension("txt");
 
         let file = File::open(&file_path)

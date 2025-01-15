@@ -54,7 +54,7 @@ impl Utils {
             day_num, part_num
         );
 
-        let read_file = Self::read_file::<String>(day_num);
+        let read_file = Self::read_file(day_num);
         let (parsing_time, final_type) = Self::time_it(move || T::from(read_file));
         println!(
             "Time taken to parse: {:?}",
@@ -100,7 +100,6 @@ impl Utils {
     where
         R: Debug + PartialEq,
     {
-        // The assumption is that no advent of code answer is to ever be zero cuz that'll be boring
         match expected {
             None => println!("INCOMPLETE | Temp Result: {:?}", result),
             Some(expected) => {
@@ -161,11 +160,7 @@ Time Taken: {}
     ///
     /// # Panics
     ///  If the file cannot be opened or if parsing an element fails.
-    fn read_file<T>(day_num: u8) -> Vec<T>
-    where
-        T: std::str::FromStr,
-        T::Err: Debug,
-    {
+    fn read_file(day_num: u8) -> Vec<String> {
         let file_path = Self::get_file_path()
             .join("inputs")
             .join(format!("day{}", day_num))
@@ -174,10 +169,7 @@ Time Taken: {}
         let file = File::open(&file_path)
             .unwrap_or_else(|_| panic!("Failed to open file at {}", file_path.display()));
         let reader = BufReader::new(file);
-        reader
-            .lines()
-            .map(|line| line.unwrap().parse::<T>().unwrap())
-            .collect()
+        reader.lines().map(Result::unwrap).collect()
     }
 
     /// Retrieves the base directory for the project.

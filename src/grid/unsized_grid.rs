@@ -1,10 +1,7 @@
 use crate::coordinate_system::Coordinate;
-use crate::grid::iterators::{GridIter, RowIterMut};
+use crate::grid::iterators::{GridIter, GridIterMut, RowIterMut};
 use crate::grid::{Grid, GridMut};
 use std::fmt::Debug;
-use std::iter::Enumerate;
-use std::marker::PhantomData;
-use std::slice::IterMut;
 
 /// A dynamically sized grid structure.
 ///
@@ -42,6 +39,7 @@ use std::slice::IterMut;
 /// assert_eq!(grid.get(&coordinate), Some(&10));
 /// ```
 #[repr(transparent)]
+#[derive(Clone)]
 pub struct UnsizedGrid<T> {
     matrix: Box<[Box<[T]>]>,
 }
@@ -87,38 +85,69 @@ impl<T> UnsizedGrid<T> {
         Self::from(vec![vec![default; cols]; rows])
     }
 
-    /// Creates an iterator over the grid which allows mutation of `T`.
+    /// Creates a new `UnsizedGrid` with the same dimensions as the provided grid,
+    /// transforming each element using the provided function.
+    ///
+    /// # Arguments
+    ///
+    /// * `grid` - A reference to a grid implementing the `Grid` trait, from which the dimensions are taken.
+    /// * `transform_fn` - The function used to transform each element in the new grid.
+    ///
+    /// # Type Parameters
+    ///
+    /// * `O` - The type of elements stored in the provided grid.
+    /// * `F` - The transform function used to create elements of the new.
     ///
     /// # Returns
     ///
-    /// A `GridIterMut` over the grid.
+    /// A new `UnsizedGrid` instance with the same dimensions as the provided grid and transformed values.
     ///
     /// # Examples
     ///
     /// ```
-    /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
-    /// use aoc_utils_rust::grid::GridMut;
     /// use aoc_utils_rust::coordinate_system::Coordinate;
+    /// use aoc_utils_rust::grid::{Grid, GridMut};
+    /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
     ///
-    /// let mut grid = UnsizedGrid::from(vec![vec![1, 2, 3], vec![4, 5, 6]]);
-    /// let mut iter = grid.iter_mut();
+    /// let original_grid = UnsizedGrid::new(2, 3, 0);
+    /// let new_grid = UnsizedGrid::transform_from(&original_grid, |_| 1);
     ///
-    /// let mut row_iter = iter.next().unwrap();
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 0), &mut 1)));
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 1), &mut 2)));
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 2), &mut 3)));
-    /// assert_eq!(row_iter.next(), None);
+    /// assert_eq!(new_grid.num_rows(), 2);
+    /// assert_eq!(new_grid.num_cols(), 3);
+    /// assert_eq!(new_grid.get(&Coordinate::new(0, 1)), Some(&1));
     ///
-    /// let mut row_iter = iter.next().unwrap();
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 0), &mut 4)));
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 1), &mut 5)));
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 2), &mut 6)));
-    /// assert_eq!(row_iter.next(), None);
+    /// /////////////////////////////////////////////////
+    /// let original_grid = UnsizedGrid::from(vec![
+    ///     vec![1, 2, 3],
+    ///     vec![4, 5, 6],
+    ///     vec![7, 8, 9],
+    /// ]);
     ///
-    /// assert_eq!(iter.next(), None);
+    /// // The new grid will have the same dimensions as the original grid, but all elements will be multiplied by 2
+    /// // except the element at the origin which will be set to 0
+    /// let new_grid = UnsizedGrid::transform_from(&original_grid, |(coord, e)| {
+    ///     if coord == Coordinate::ORIGIN {
+    ///        0
+    ///     } else {
+    ///         *e * 2
+    ///     }
+    /// });
+    ///
+    /// assert_eq!(new_grid.num_rows(), 3);
+    /// assert_eq!(new_grid.num_cols(), 3);
+    /// assert_eq!(new_grid.get(&Coordinate::new(0, 0)), Some(&0));
+    /// assert_eq!(new_grid.get(&Coordinate::new(2, 2)), Some(&18));
     /// ```
-    pub fn iter_mut(&mut self) -> GridIterMut<'_, T> {
-        GridIterMut::new(self)
+    #[inline]
+    pub fn transform_from<O, F>(grid: &impl Grid<O>, transform_fn: F) -> UnsizedGrid<T>
+    where
+        F: Fn((Coordinate, &O)) -> T,
+    {
+        UnsizedGrid::from(
+            grid.iter()
+                .map(|row| row.map(|e| transform_fn(e)).collect::<Box<[_]>>())
+                .collect::<Box<[_]>>(),
+        )
     }
 }
 
@@ -136,7 +165,7 @@ impl<T: Debug> Debug for UnsizedGrid<T> {
         writeln!(f, "UnsizedGrid: {{")?;
         for row in self.matrix.iter() {
             for cell in row.iter() {
-                write!(f, "{:?}    ", cell)?;
+                write!(f, "{:?}", cell)?;
             }
             writeln!(f)?;
         }
@@ -238,7 +267,7 @@ impl<T> Grid<T> for UnsizedGrid<T> {
     /// let invalid_coordinate = Coordinate::new(2, 3);
     /// assert_eq!(grid.get(&invalid_coordinate), None);
     /// ```
-    #[inline(always)]
+    #[inline]
     fn get(&self, coordinate: &Coordinate) -> Option<&T> {
         if self.is_valid_coordinate(coordinate) {
             Some(&self.matrix[coordinate.i as usize][coordinate.j as usize])
@@ -285,7 +314,7 @@ impl<T> Grid<T> for UnsizedGrid<T> {
     where
         T: 'a,
     {
-        GridIter::new(self, 0)
+        GridIter::new(self)
     }
 }
 
@@ -346,6 +375,46 @@ impl<T> GridMut<T> for UnsizedGrid<T> {
         } else {
             None
         }
+    }
+
+    /// Returns an iterator over the rows of the grid, allowing mutable access to each row.
+    ///
+    /// # Returns
+    ///
+    /// A `GridIterMut` that iterates over the rows of the grid, allowing mutable access to each row.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
+    /// use aoc_utils_rust::grid::iterators::{GridIterMut, RowIterMut};
+    /// use aoc_utils_rust::coordinate_system::Coordinate;
+    /// use aoc_utils_rust::grid::GridMut;
+    ///
+    /// let mut grid = UnsizedGrid::from(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+    /// let mut iter = grid.iter_mut();
+    ///
+    /// let mut row_iter = iter.next().unwrap();
+    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 0), &mut 1)));
+    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 1), &mut 2)));
+    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 2), &mut 3)));
+    /// assert_eq!(row_iter.next(), None);
+    ///
+    /// let mut row_iter = iter.next().unwrap();
+    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 0), &mut 4)));
+    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 1), &mut 5)));
+    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 2), &mut 6)));
+    /// assert_eq!(row_iter.next(), None);
+    ///
+    /// assert_eq!(iter.next(), None);
+    /// ```
+    fn iter_mut(&mut self) -> GridIterMut<T, impl Iterator<Item = RowIterMut<T>>> {
+        GridIterMut::new(
+            self.matrix
+                .iter_mut()
+                .enumerate()
+                .map(|(i, row)| RowIterMut::new(row, i)),
+        )
     }
 }
 
@@ -423,103 +492,5 @@ impl<T> From<Box<[Box<[T]>]>> for UnsizedGrid<T> {
         assert!(!grid.is_empty(), "Grid cannot be empty");
         assert!(!grid[0].is_empty(), "Grid rows cannot be empty");
         Self { matrix: grid }
-    }
-}
-
-/// An iterator over the rows of a mutable `UnsizedGrid`.
-///
-/// # Type Parameters
-///
-/// * `'a` - The lifetime of the references to the grid and its elements.
-/// * `T` - The type of elements stored in the grid.
-///
-/// # Examples
-///
-/// ```
-/// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
-/// use aoc_utils_rust::grid::GridMut;
-/// use aoc_utils_rust::coordinate_system::Coordinate;
-///
-/// let mut grid = UnsizedGrid::from(vec![vec![1, 2, 3], vec![4, 5, 6]]);
-/// let mut iter = grid.iter_mut();
-///
-/// let mut row_iter = iter.next().unwrap();
-/// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 0), &mut 1)));
-/// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 1), &mut 2)));
-/// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 2), &mut 3)));
-/// assert_eq!(row_iter.next(), None);
-///
-/// let mut row_iter = iter.next().unwrap();
-/// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 0), &mut 4)));
-/// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 1), &mut 5)));
-/// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 2), &mut 6)));
-/// assert_eq!(row_iter.next(), None);
-///
-/// assert_eq!(iter.next(), None);
-/// ```
-pub struct GridIterMut<'a, T>
-where
-    T: 'a,
-{
-    grid_rows: Enumerate<IterMut<'a, Box<[T]>>>,
-    _marker: PhantomData<&'a mut T>,
-}
-
-impl<'a, T> GridIterMut<'a, T>
-where
-    T: 'a,
-{
-    pub(self) fn new(grid: &'a mut UnsizedGrid<T>) -> Self {
-        let enumerated_rows: Enumerate<IterMut<Box<[T]>>> = grid.matrix.iter_mut().enumerate();
-        Self {
-            grid_rows: enumerated_rows,
-            _marker: PhantomData,
-        }
-    }
-}
-
-impl<'a, T> Iterator for GridIterMut<'a, T>
-where
-    T: 'a,
-{
-    type Item = RowIterMut<'a, T>;
-
-    /// Advances the iterator and returns the next row iterator.
-    ///
-    /// # Returns
-    ///
-    /// An `Option` containing the next `RowIterMut`, or `None` if there are no more rows.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
-    /// use aoc_utils_rust::grid::GridMut;
-    /// use aoc_utils_rust::coordinate_system::Coordinate;
-    ///
-    /// let mut grid = UnsizedGrid::from(vec![vec![1, 2, 3], vec![4, 5, 6]]);
-    /// let mut iter = grid.iter_mut();
-    ///
-    /// let mut row_iter = iter.next().unwrap();
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 0), &mut 1)));
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 1), &mut 2)));
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(0, 2), &mut 3)));
-    /// assert_eq!(row_iter.next(), None);
-    ///
-    /// let mut row_iter = iter.next().unwrap();
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 0), &mut 4)));
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 1), &mut 5)));
-    /// assert_eq!(row_iter.next(), Some((Coordinate::new(1, 2), &mut 6)));
-    /// assert_eq!(row_iter.next(), None);
-    ///
-    /// assert_eq!(iter.next(), None);
-    /// ```
-    fn next(&mut self) -> Option<Self::Item> {
-        if let Some((row, row_item)) = self.grid_rows.next() {
-            let row_iter = RowIterMut::new(row_item.as_mut(), row);
-            Some(row_iter)
-        } else {
-            None
-        }
     }
 }

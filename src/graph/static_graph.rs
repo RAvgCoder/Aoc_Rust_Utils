@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::fmt::Formatter;
 
 /// A graph data structure where nodes and edges are stored in vectors.
@@ -544,10 +544,10 @@ impl<N, E> StaticGraph<N, E> {
     ///
     /// # Examples
     ///
-    /// ```ignore
-    /// use aoc_utils_rust::graph::{Graph, EdgeRelationship};
+    /// ```
+    /// use aoc_utils_rust::graph::static_graph::{StaticGraph, EdgeRelationship};
     ///
-    /// let mut graph = Graph::new();
+    /// let mut graph = StaticGraph::new();
     /// let node_a = graph.add_node("A");
     /// let node_b = graph.add_node("B");
     /// let node_c = graph.add_node("C");
@@ -560,20 +560,83 @@ impl<N, E> StaticGraph<N, E> {
     ///
     /// let in_degrees = graph.get_in_degrees();
     /// assert_eq!(in_degrees.len(), 4);
-    /// assert_eq!(in_degrees[0], (node_a, None));
-    /// assert_eq!(in_degrees[1], (node_b, Some(1)));
-    /// assert_eq!(in_degrees[2], (node_c, Some(2)));
-    /// assert_eq!(in_degrees[3], (node_d, Some(1)));
+    /// assert_eq!(in_degrees[0], (node_a, 0));
+    /// assert_eq!(in_degrees[1], (node_b, 1));
+    /// assert_eq!(in_degrees[2], (node_c, 2));
+    /// assert_eq!(in_degrees[3], (node_d, 1));
     /// ```
-    fn get_in_degrees(&self) -> Vec<(StaticNodePtr, Option<u32>)> {
-        let mut in_degrees = vec![(StaticNodePtr { idx: 0 }, None); self.nodes.len()];
+    pub fn get_in_degrees(&self) -> Vec<(StaticNodePtr, u32)> {
+        let mut in_degrees = vec![(StaticNodePtr { idx: 0 }, 0); self.nodes.len()];
         for (idx, node) in self.nodes.iter().enumerate() {
             in_degrees[node.node_index.idx].0 = StaticNodePtr { idx };
             for (neighbour, _) in self.neighbours_iter(node.node_index) {
-                *in_degrees[neighbour.idx].1.get_or_insert(0) += 1;
+                in_degrees[neighbour.idx].1 += 1;
             }
         }
         in_degrees
+    }
+
+    /// Counts the number of nodes reachable from the given node.
+    ///
+    /// This function performs a breadth-first search (BFS) to count all nodes
+    /// that can be reached from the specified starting node.
+    ///
+    /// # Arguments
+    ///
+    /// * `static_node_ptr` - The starting node pointer.
+    ///
+    /// # Returns
+    ///
+    /// The number of nodes reachable from the starting node.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use aoc_utils_rust::graph::static_graph::{EdgeRelationship , StaticGraph};
+    ///
+    /// let mut graph = StaticGraph::new();
+    /// let node_a = graph.add_node("A");
+    /// let node_b = graph.add_node("B");
+    /// let node_c = graph.add_node("C");
+    /// let node_d = graph.add_node("D");
+    /// let node_e = graph.add_node("E");
+    /// graph.add_edge(node_a, node_b, EdgeRelationship::AToB(())).unwrap();
+    /// graph.add_edge(node_b, node_c, EdgeRelationship::BiDirectional {a_to_b : (), b_to_a: () }).unwrap();
+    /// graph.add_edge(node_d, node_e, EdgeRelationship::BiDirectional {a_to_b : (), b_to_a: () }).unwrap();
+    ///
+    /// let ptrs = graph.get_nodes_reachable_from(node_a);
+    /// assert_eq!(ptrs, vec![node_a, node_b, node_c].into_boxed_slice());
+    /// assert_eq!(ptrs.len(), 3);
+    ///
+    /// let ptrs = graph.get_nodes_reachable_from(node_d);
+    /// assert_eq!(ptrs, vec![node_d, node_e].into_boxed_slice());
+    /// assert_eq!(ptrs.len(), 2);
+    /// ```
+    pub fn get_nodes_reachable_from(&self, static_node_ptr: StaticNodePtr) -> Box<[StaticNodePtr]> {
+        let mut visited = vec![false; self.nodes.len()];
+        let mut queue = VecDeque::new();
+
+        queue.push_back(static_node_ptr);
+
+        while let Some(curr_node) = queue.pop_front() {
+            if visited[curr_node.idx] {
+                continue;
+            }
+            visited[curr_node.idx] = true;
+
+            for (neighbour, _) in self.neighbours_iter(curr_node) {
+                if !visited[neighbour.idx] {
+                    queue.push_back(neighbour);
+                }
+            }
+        }
+
+        visited
+            .into_iter()
+            .enumerate()
+            .filter(|(_, visited)| *visited)
+            .map(|(idx, _)| StaticNodePtr { idx })
+            .collect::<Box<_>>()
     }
 
     /// Returns an iterator over the neighbors of the specified node.
@@ -669,7 +732,7 @@ impl<N, E> StaticGraph<N, E> {
 
         // Collect nodes with zero in-degree
         for (node_ptr, in_degree) in in_degrees.iter() {
-            if *in_degree == None {
+            if *in_degree == 0 {
                 zero_in_degree_nodes.push(*node_ptr);
             }
         }
@@ -679,12 +742,11 @@ impl<N, E> StaticGraph<N, E> {
             result.push(node);
 
             for (neighbour, _) in self.neighbours_iter(node) {
-                in_degrees[neighbour.idx].1.as_mut().map(|degree| {
-                    *degree -= 1;
-                    if *degree == 0 {
-                        zero_in_degree_nodes.push(neighbour);
-                    }
-                });
+                let degree = &mut in_degrees[neighbour.idx].1;
+                *degree -= 1;
+                if *degree == 0 {
+                    zero_in_degree_nodes.push(neighbour);
+                }
             }
         }
 

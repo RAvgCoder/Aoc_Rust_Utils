@@ -111,8 +111,11 @@ Assertion Failed
 ----------------
 Expected: {:?}
 Found: {:?}
+Time Taken: {}
             "#,
-                        expected, result
+                        expected,
+                        result,
+                        Self::log_elapsed_time(elapsed_time)
                     );
                     std::process::exit(1);
                 }
@@ -165,11 +168,7 @@ Found: {:?}
     {
         let file_path = Self::get_file_path()
             .join("inputs")
-            .join(if day_num == 0 {
-                "Example".to_string()
-            } else {
-                format!("day{}", day_num)
-            })
+            .join(format!("day{}", day_num))
             .with_extension("txt");
 
         let file = File::open(&file_path)

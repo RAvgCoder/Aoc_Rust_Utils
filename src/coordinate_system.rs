@@ -1,3 +1,4 @@
+use crate::coordinate_system::direction::Direction;
 use std::fmt;
 use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign};
 use std::str::FromStr;
@@ -71,6 +72,8 @@ pub struct Coordinate {
 }
 
 impl Coordinate {
+    pub const ORIGIN: Self = Self { i: 0, j: 0 };
+
     /// Creates a new `Coordinate`.
     ///
     /// # Arguments
@@ -268,6 +271,27 @@ impl AddAssign for Coordinate {
     fn add_assign(&mut self, other: Self) {
         self.i += other.i;
         self.j += other.j;
+    }
+}
+
+impl AddAssign<Direction> for Coordinate {
+    /// Adds a `Direction` to this `Coordinate`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use self::aoc_utils_rust::coordinate_system::Coordinate;
+    /// use self::aoc_utils_rust::coordinate_system::direction::Direction;
+    /// let mut coord = Coordinate::new(3, 4);
+    /// coord += Direction::North;
+    /// assert_eq!(coord.i, 2);
+    /// assert_eq!(coord.j, 4);
+    /// ```
+    #[inline(always)]
+    fn add_assign(&mut self, direction: Direction) {
+        let (dx, dy) = direction.offset();
+        self.i += dx;
+        self.j += dy;
     }
 }
 
@@ -577,6 +601,72 @@ pub mod direction {
         pub const fn direction_list() -> [Direction; 4] {
             [Self::North, Self::East, Self::South, Self::West]
         }
+
+        /// Rotates the direction 90 degrees to the right.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use self::aoc_utils_rust::coordinate_system::direction::Direction;
+        /// assert_eq!(Direction::North.rotate_90(), Direction::East);
+        /// assert_eq!(Direction::East.rotate_90(), Direction::South);
+        /// assert_eq!(Direction::South.rotate_90(), Direction::West);
+        /// assert_eq!(Direction::West.rotate_90(), Direction::North);
+        /// assert_eq!(Direction::Current.rotate_90(), Direction::Current);
+        /// ```
+        pub const fn rotate_90(&self) -> Direction {
+            match self {
+                Self::North => Self::East,
+                Self::East => Self::South,
+                Self::South => Self::West,
+                Self::West => Self::North,
+                Self::Current => Self::Current,
+            }
+        }
+
+        /// Rotates the direction 90 degrees to the left.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use self::aoc_utils_rust::coordinate_system::direction::Direction;
+        /// assert_eq!(Direction::North.rotate_270(), Direction::West);
+        /// assert_eq!(Direction::East.rotate_270(), Direction::North);
+        /// assert_eq!(Direction::South.rotate_270(), Direction::East);
+        /// assert_eq!(Direction::West.rotate_270(), Direction::South);
+        /// assert_eq!(Direction::Current.rotate_270(), Direction::Current);
+        /// ```
+        pub const fn rotate_270(&self) -> Direction {
+            match self {
+                Self::North => Self::West,
+                Self::East => Self::North,
+                Self::South => Self::East,
+                Self::West => Self::South,
+                Self::Current => Self::Current,
+            }
+        }
+
+        /// Returns the opposite direction.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use self::aoc_utils_rust::coordinate_system::direction::Direction;
+        /// assert_eq!(Direction::North.rotate_180(), Direction::South);
+        /// assert_eq!(Direction::East.rotate_180(), Direction::West);
+        /// assert_eq!(Direction::South.rotate_180(), Direction::North);
+        /// assert_eq!(Direction::West.rotate_180(), Direction::East);
+        /// assert_eq!(Direction::Current.rotate_180(), Direction::Current);
+        /// ```
+        pub const fn rotate_180(&self) -> Direction {
+            match self {
+                Self::North => Self::South,
+                Self::East => Self::West,
+                Self::South => Self::North,
+                Self::West => Self::East,
+                Self::Current => Self::Current,
+            }
+        }
     }
 
     impl TryFrom<char> for Direction {
@@ -598,6 +688,21 @@ pub mod direction {
                 'S' => Ok(Self::South),
                 'W' => Ok(Self::West),
                 _ => Err("Invalid direction"),
+            }
+        }
+    }
+
+    impl TryFrom<(i32, i32)> for Direction {
+        type Error = &'static str;
+
+        fn try_from(value: (i32, i32)) -> Result<Self, Self::Error> {
+            match value {
+                (-1, 0) => Ok(Self::North),
+                (0, 1) => Ok(Self::East),
+                (1, 0) => Ok(Self::South),
+                (0, -1) => Ok(Self::West),
+                (0, 0) => Ok(Self::Current),
+                _ => Err("Invalid direction pair"),
             }
         }
     }

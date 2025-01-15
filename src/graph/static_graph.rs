@@ -135,9 +135,9 @@ use std::fmt::Formatter;
 ///
 /// let node_a = graph.find_node_index(|node| *node == "A").unwrap();
 /// // Iterate through the neighbors of node A collecting them into a vector
-/// let neighbours = graph.neighbours_iter(node_a).collect::<Vec<(StaticNodePtr, &u8)>>();
+/// let neighbours = graph.neighbours_iter(node_a).collect::<HashSet<(StaticNodePtr, &u8)>>();
 /// assert_eq!(
-///     neighbours.into_iter().collect::<HashSet<_>>(),
+///     neighbours,
 ///     vec![
 ///         (graph.find_node_index(|node| *node == "B").unwrap(), &2u8),
 ///         (graph.find_node_index(|node| *node == "C").unwrap(), &5),

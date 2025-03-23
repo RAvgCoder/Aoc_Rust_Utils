@@ -1,7 +1,7 @@
 use crate::coordinate_system::Coordinate;
 use crate::grid::GridMut;
 use std::fmt::{Debug, Formatter};
-use std::ops::{Deref, Not};
+use std::ops::Deref;
 
 /// A timer struct used for setting up a new visitor.
 #[repr(transparent)]
@@ -136,11 +136,13 @@ where
     /// visitor.mark_visited(Coordinate::new(1, 1));
     /// ```
     #[inline]
-    pub fn mark_visited(&mut self, coord: Coordinate) -> bool {
-        self.has_visited(coord)
-            .not()
-            .then(|| *self.backing_grid.get_mut(&coord).unwrap() = self.curr_time)
-            .is_some()
+    pub fn mark_visited(&mut self, coord: Coordinate<isize>) -> bool {
+        if !self.has_visited(coord) {
+            *self.backing_grid.get_mut(&coord).unwrap() = self.curr_time;
+            true
+        } else {
+            false
+        }
     }
 
     /// Unmarks the specified coordinate as visited by resetting the timer at that coordinate.
@@ -162,7 +164,7 @@ where
     /// visitor.unmark_visited(Coordinate::new(1, 1));
     /// assert!(!visitor.has_visited(Coordinate::new(1, 1)));
     /// ```
-    pub fn unmark_visited(&mut self, coord: Coordinate) {
+    pub fn unmark_visited(&mut self, coord: Coordinate<isize>) {
         self.backing_grid.get_mut(&coord).unwrap().reset();
     }
 
@@ -189,7 +191,7 @@ where
     /// assert!(!visitor.has_visited(Coordinate::new(0, 0)));
     /// ```
     #[inline]
-    pub fn has_visited(&self, coord: Coordinate) -> bool {
+    pub fn has_visited(&self, coord: Coordinate<isize>) -> bool {
         *self.backing_grid.get(&coord).unwrap() == self.curr_time
     }
 

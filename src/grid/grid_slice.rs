@@ -1,5 +1,6 @@
 use crate::coordinate_system::Coordinate;
 use crate::grid::{Grid, GridIter};
+use crate::{to_signed_coordinate, to_unsigned_coordinate};
 use std::marker::PhantomData;
 use std::ops::{Deref, RangeInclusive};
 
@@ -114,8 +115,10 @@ where
     where
         G: Grid<T>,
     {
-        grid.is_valid_coordinate(&Coordinate::new(*row.start() as i32, *col.start() as i32))
-            && grid.is_valid_coordinate(&Coordinate::new(*row.end() as i32, *col.end() as i32))
+        grid.is_valid_coordinate(&Coordinate::new(
+            *row.start() as isize,
+            *col.start() as isize,
+        )) && grid.is_valid_coordinate(&Coordinate::new(*row.end() as isize, *col.end() as isize))
     }
 
     /// Creates a new `GridView` from an existing `GridView` and new row/column ranges.
@@ -135,6 +138,7 @@ where
     /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
     /// use aoc_utils_rust::coordinate_system::Coordinate;
     /// use aoc_utils_rust::grid::Grid;
+    /// use aoc_utils_rust::to_signed_coordinate;
     ///
     /// let grid = UnsizedGrid::from(vec![
     ///         vec![1,  2,  3,  4],
@@ -150,14 +154,14 @@ where
     ///  // [10, 11]
     ///  // [14, 15]
     /// let first_slice = GridSlice::new(&grid, 1..=3, 1..=2).unwrap();
-    /// assert_eq!(first_slice.get(&first_slice.bottom_right_coordinate()), Some(&15));
+    /// assert_eq!(first_slice.get(&to_signed_coordinate!(first_slice.bottom_right_coordinate())), Some(&15));
     ///
     ///
     ///  // [6,  7]
     ///  // [10, 11]
     /// let second_slice = GridSlice::from_slice(&first_slice, 0..=1, 0..=1).unwrap();
     /// assert_eq!(second_slice.get(&Coordinate::new(0, 0)), Some(&6));
-    /// assert_eq!(second_slice.get(&second_slice.bottom_right_coordinate()), Some(&11));
+    /// assert_eq!(second_slice.get(&to_signed_coordinate!(second_slice.bottom_right_coordinate())), Some(&11));
     ///
     ///  //  [11]
     ///  //  [15]
@@ -189,33 +193,36 @@ where
 /// to the actual coordinate of the backing grid
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 #[repr(transparent)]
-struct InternalCoordinate(Coordinate);
+struct InternalCoordinate(Coordinate<usize>);
 
 impl InternalCoordinate {
-    fn from_slice_coordinate<G, T>(coordinate: &Coordinate, grid_slice: &GridSlice<G, T>) -> Self
+    fn from_slice_coordinate<G, T>(
+        coordinate: &Coordinate<usize>,
+        grid_slice: &GridSlice<G, T>,
+    ) -> Self
     where
         G: Grid<T>,
     {
         let translated = Coordinate::new(
-            coordinate.i + *grid_slice.row.start() as i32,
-            coordinate.j + *grid_slice.col.start() as i32,
+            coordinate.i + *grid_slice.row.start(),
+            coordinate.j + *grid_slice.col.start(),
         );
         Self(translated)
     }
 
-    fn to_slice_coordinate<G, T>(&self, grid_slice: &GridSlice<G, T>) -> Coordinate
+    fn to_slice_coordinate<G, T>(&self, grid_slice: &GridSlice<G, T>) -> Coordinate<usize>
     where
         G: Grid<T>,
     {
         Coordinate::new(
-            self.0.i - *grid_slice.row.start() as i32,
-            self.0.j - *grid_slice.col.start() as i32,
+            self.0.i - *grid_slice.row.start(),
+            self.0.j - *grid_slice.col.start(),
         )
     }
 }
 
 impl Deref for InternalCoordinate {
-    type Target = Coordinate;
+    type Target = Coordinate<usize>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -305,8 +312,8 @@ where
         if self.is_valid_slice_row(row) {
             self.grid
                 .get_row(
-                    InternalCoordinate::from_slice_coordinate(&Coordinate::new(row as i32, 0), self)
-                        .i as usize,
+                    InternalCoordinate::from_slice_coordinate(&Coordinate::new(row, 0), self).i
+                        as usize,
                 )
                 .map(|row| &row[self.col.clone()])
         } else {
@@ -343,14 +350,13 @@ where
     /// assert_eq!(grid_slice.get(&Coordinate::new(1, 0)), Some(&10));
     /// assert_eq!(grid_slice.get(&Coordinate::new(1, 1)), Some(&11));
     /// assert_eq!(grid_slice.get(&Coordinate::new(1, 2)), None);
-    /// assert_eq!(grid_slice.get(&Coordinate::new(-1, 2)), None);
     /// ```
-    fn get(&self, coordinate: &Coordinate) -> Option<&T> {
-        if !self.is_valid_coordinate(coordinate) {
+    fn get(&self, coordinate: &Coordinate<isize>) -> Option<&T> {
+        if !self.is_valid_coordinate(&coordinate) {
             return None;
         }
-        self.grid.get(&*InternalCoordinate::from_slice_coordinate(
-            coordinate, self,
+        self.grid.get(&to_signed_coordinate!(
+            *InternalCoordinate::from_slice_coordinate(&to_unsigned_coordinate!(coordinate), self,)
         ))
     }
 

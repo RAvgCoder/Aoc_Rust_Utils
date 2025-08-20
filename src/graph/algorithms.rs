@@ -1,6 +1,5 @@
-use std::collections::HashSet;
+use crate::graph::algorithms::union_find::UnionFind;
 use crate::graph::{StaticEdgePtr, StaticGraph, StaticNodePtr};
-pub use union_find::*;
 
 /// Algorithms
 impl<N, E> StaticGraph<N, E> {
@@ -61,7 +60,7 @@ impl<N, E> StaticGraph<N, E> {
                 zero_in_degree_nodes.push(*node_ptr);
             }
         }
-
+        
         // Process nodes with zero in-degree
         while let Some(node) = zero_in_degree_nodes.pop() {
             result.push(node);
@@ -147,7 +146,7 @@ impl<N, E> StaticGraph<N, E> {
     ///     (9, ("F", "D")),
     ///     (12, ("A", "C")),
     ///  ];
-    /// 
+    ///
     /// assert_eq!(result, expected);
     /// ```
     ///
@@ -163,7 +162,7 @@ impl<N, E> StaticGraph<N, E> {
         let mut edges = self.edges.iter().enumerate().collect::<Vec<_>>();
         // Sort edges by weight in ascending order
         edges.sort_by_key(|(_, edge)| &edge.data);
-
+        
         let mut result = Vec::new();
         let mut uf = UnionFind::new(self);
 
@@ -209,16 +208,16 @@ pub mod union_find {
     /// It stores the parent and size of each node in the disjoint sets, enabling efficient union and find operations.
     #[derive(Clone)]
     pub struct UnionFind<'graph> {
-        // A vector where each element represents the parent of a node.
-        // If an element is equal to its own index, it is a root node.
+        /// A vector where each element represents the parent of a node.
+        /// If an element is equal to its own index, it is a root node.
         parent: Vec<StaticNodePtr>,
 
-        // A vector where each element represents the size of the group rooted at the corresponding index.
-        // Only valid for group roots.
+        /// A vector where each element represents the size of the group rooted at the corresponding index.
+        /// Only valid for group roots.
         group_size: Vec<usize>,
 
-        // A phantom data field to ensure that the UnionFind structure is tied to a specific graph.
-        // This prevents modification of the graph while the UnionFind structure is in use.
+        /// A phantom data field to ensure that the UnionFind structure is tied to a specific graph.
+        /// This prevents modification of the graph while the UnionFind structure is in use.
         _graph_lock: PhantomData<&'graph ()>,
     }
 
@@ -242,7 +241,7 @@ pub mod union_find {
         ///
         /// # Example
         ///```rust
-        /// use aoc_utils_rust::graph::algorithms::{GroupRoot, UnionFind};
+        /// use aoc_utils_rust::graph::algorithms::union_find::{GroupRoot, UnionFind};
         /// use aoc_utils_rust::graph::StaticGraph;
         ///
         /// let mut graph: StaticGraph<_, ()> = StaticGraph::new();
@@ -276,8 +275,8 @@ pub mod union_find {
         ///
         /// # Example
         /// ```rust
-        /// use aoc_utils_rust::graph::algorithms::{GroupRoot, UnionFind};
         /// use aoc_utils_rust::graph::{EdgeRelationship, StaticGraph};
+        /// use aoc_utils_rust::graph::algorithms::union_find::{GroupRoot, UnionFind};
         ///
         /// let mut graph = StaticGraph::new();
         ///
@@ -310,7 +309,7 @@ pub mod union_find {
         /// ```
         pub fn find(&mut self, node: StaticNodePtr) -> Option<GroupRoot> {
             // If the node is its own parent, it is the root of the group.
-            if self.parent[*node] == node {
+            if *self.parent.get(*node)? == node {
                 return Some(GroupRoot {
                     ptr: StaticNodePtr { idx: *node },
                     size: self.group_size[node.idx],
@@ -341,8 +340,8 @@ pub mod union_find {
         ///
         /// # Example
         /// ```rust
-        /// use aoc_utils_rust::graph::algorithms::{GroupRoot, UnionFind, UnionFindError};
         /// use aoc_utils_rust::graph::{EdgeRelationship, StaticGraph};
+        /// use aoc_utils_rust::graph::algorithms::union_find::{GroupRoot, UnionFind, UnionFindError};
         ///
         /// let mut graph = StaticGraph::<_, ()>::new();
         ///
@@ -355,6 +354,7 @@ pub mod union_find {
         /// let nodeg = graph.add_node("g"); // idx: 6
         ///
         /// let mut uf = UnionFind::new(&graph);
+        /// assert_eq!(uf.count_groups(), 7);
         ///
         /// assert_eq!(uf.find(nodea).expect("Node should exist."), GroupRoot { ptr: nodea, size: 1 }); // Node A is its own root initially.
         /// assert_eq!(uf.find(nodeb).expect("Node should exist."), GroupRoot { ptr: nodeb, size: 1 }); // Node B is its own root initially.
@@ -382,6 +382,8 @@ pub mod union_find {
         ///
         /// uf.union(nodea, nodee).unwrap();
         /// assert_eq!(uf.find(nodee).expect("Node should exist."), GroupRoot { ptr: nodeg, size: 7 }); // Group D is now added to group F:  {A, B, C, D, E, G, F}.
+        /// 
+        /// assert_eq!(uf.count_groups(), 1); // There is only one group in the UnionFind structure.
         /// ```
         pub fn union(
             &mut self,
@@ -410,7 +412,7 @@ pub mod union_find {
             }
         }
 
-        fn count_groups(&self) -> usize {
+        pub fn count_groups(&self) -> usize {
             self.parent
                 .iter()
                 .enumerate()

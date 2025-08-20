@@ -206,9 +206,6 @@ where
     /// let coord1 = Coordinate::new(4, 4);
     /// let coord2 = Coordinate::new(1, 8);
     /// assert_eq!(coord2.slope_relative(coord1), (3, -4));
-    ///
-    /// let coord1 = Coordinate::new(4, 4);
-    /// let coord2 = Coordinate::new(1, 8);
     /// assert_eq!(coord1.slope_relative(coord2), (-3, 4));
     /// ```
     #[inline(always)]

@@ -1,4 +1,4 @@
-use aoc_utils_rust::graph::static_graph::{EdgeRelationship, StaticGraph};
+use aoc_utils_rust::graph::{EdgeRelationship, StaticGraph};
 use std::collections::HashMap;
 
 fn main() {
@@ -14,7 +14,7 @@ fn main() {
         .topological_sort()
         .unwrap()
         .iter()
-        .map(|node| *graph.get(*node).unwrap())
+        .map(|node| *graph.get_node(*node).unwrap())
         .collect::<Vec<i32>>();
 
     // Create these inserts manually to test the graph
@@ -45,5 +45,5 @@ fn main() {
         .topological_sort()
         .unwrap()
         .iter()
-        .for_each(|node| print!("{}, ", graph.get(*node).unwrap()));
+        .for_each(|node| print!("{}, ", graph.get_node(*node).unwrap()));
 }

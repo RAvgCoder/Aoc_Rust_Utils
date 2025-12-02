@@ -1,6 +1,7 @@
 use crate::coordinate_system::Coordinate;
 use crate::grid::iterators::{GridIter, GridIterMut, RowIterMut};
 use crate::grid::{Grid, GridMut};
+use crate::to_unsigned_coordinate;
 use std::fmt::Debug;
 
 /// A dynamically sized grid structure.
@@ -106,7 +107,7 @@ impl<T> UnsizedGrid<T> {
     ///
     /// ```
     /// use aoc_utils_rust::coordinate_system::Coordinate;
-    /// use aoc_utils_rust::grid::{Grid, GridMut};
+    /// use aoc_utils_rust::grid::Grid;
     /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
     ///
     /// let original_grid = UnsizedGrid::new(2, 3, 0);
@@ -141,7 +142,7 @@ impl<T> UnsizedGrid<T> {
     #[inline]
     pub fn transform_from<O, F>(grid: &impl Grid<O>, transform_fn: F) -> UnsizedGrid<T>
     where
-        F: Fn((Coordinate, &O)) -> T,
+        F: Fn((Coordinate<usize>, &O)) -> T,
     {
         UnsizedGrid::from(
             grid.iter()
@@ -268,9 +269,10 @@ impl<T> Grid<T> for UnsizedGrid<T> {
     /// assert_eq!(grid.get(&invalid_coordinate), None);
     /// ```
     #[inline]
-    fn get(&self, coordinate: &Coordinate) -> Option<&T> {
-        if self.is_valid_coordinate(coordinate) {
-            Some(&self.matrix[coordinate.i as usize][coordinate.j as usize])
+    fn get(&self, coordinate: &Coordinate<isize>) -> Option<&T> {
+        if self.is_valid_coordinate(&coordinate) {
+            let coordinate = to_unsigned_coordinate!(coordinate);
+            Some(&self.matrix[coordinate.i][coordinate.j])
         } else {
             None
         }
@@ -369,9 +371,10 @@ impl<T> GridMut<T> for UnsizedGrid<T> {
     /// }
     /// assert_eq!(grid.get(&coordinate), Some(&10));
     /// ```
-    fn get_mut(&mut self, coordinate: &Coordinate) -> Option<&mut T> {
-        if self.is_valid_coordinate(coordinate) {
-            Some(&mut self.matrix[coordinate.i as usize][coordinate.j as usize])
+    fn get_mut(&mut self, coordinate: &Coordinate<isize>) -> Option<&mut T> {
+        if self.is_valid_coordinate(&coordinate) {
+            let coordinate = to_unsigned_coordinate!(coordinate);
+            Some(&mut self.matrix[coordinate.i][coordinate.j])
         } else {
             None
         }

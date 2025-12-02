@@ -1,5 +1,7 @@
 use crate::coordinate_system::direction::Direction;
+use num_traits::{ConstZero, Num, NumCast, Signed};
 use std::fmt;
+use std::num::ParseIntError;
 use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign};
 use std::str::FromStr;
 
@@ -66,14 +68,28 @@ use std::str::FromStr;
 /// assert_eq!(northeast_offset.j, 5);
 /// ```
 #[derive(Default, Clone, Copy, Eq, Ord, PartialEq, PartialOrd, Hash)]
-pub struct Coordinate {
-    pub i: i32,
-    pub j: i32,
+pub struct Coordinate<Ty = i32>
+where
+    Ty: Num + NumCast,
+{
+    pub i: Ty,
+    pub j: Ty,
 }
 
-impl Coordinate {
-    pub const ORIGIN: Self = Self { i: 0, j: 0 };
+impl<Ty> Coordinate<Ty>
+where
+    Ty: Num + NumCast + ConstZero,
+{
+    pub const ORIGIN: Coordinate<Ty> = Coordinate {
+        i: Ty::ZERO,
+        j: Ty::ZERO,
+    };
+}
 
+impl<Ty> Coordinate<Ty>
+where
+    Ty: Copy + fmt::Debug + fmt::Display + Num + NumCast,
+{
     /// Creates a new `Coordinate`.
     ///
     /// # Arguments
@@ -90,7 +106,7 @@ impl Coordinate {
     /// assert_eq!(coord.j, 4);
     /// ```
     #[inline(always)]
-    pub const fn new(x: i32, y: i32) -> Self {
+    pub const fn new(x: Ty, y: Ty) -> Self {
         Self { i: x, j: y }
     }
 
@@ -113,7 +129,10 @@ impl Coordinate {
     /// assert_eq!(coord1.manhattan_distance(coord2), 7);
     /// ```
     #[inline]
-    pub const fn manhattan_distance(&self, other: Self) -> i32 {
+    pub fn manhattan_distance(&self, other: Self) -> Ty
+    where
+        Ty: Signed,
+    {
         let (dx, dy) = self.slope_relative(other);
         dx.abs() + dy.abs()
     }
@@ -142,7 +161,12 @@ impl Coordinate {
     #[inline]
     pub fn distance_to(&self, other: Self) -> f64 {
         let (dx, dy) = self.slope_relative(other);
-        ((dx * dx + dy * dy) as f64).sqrt()
+        Self::f64_cast(dx * dx + dy * dy).sqrt()
+    }
+
+    #[inline(always)]
+    fn f64_cast(ty: Ty) -> f64 {
+        ty.to_f64().expect("Cannot convert to f64")
     }
 
     /// Transposes the coordinate.
@@ -182,13 +206,10 @@ impl Coordinate {
     /// let coord1 = Coordinate::new(4, 4);
     /// let coord2 = Coordinate::new(1, 8);
     /// assert_eq!(coord2.slope_relative(coord1), (3, -4));
-    ///
-    /// let coord1 = Coordinate::new(4, 4);
-    /// let coord2 = Coordinate::new(1, 8);
     /// assert_eq!(coord1.slope_relative(coord2), (-3, 4));
     /// ```
     #[inline(always)]
-    pub const fn slope_relative(&self, other: Self) -> (i32, i32) {
+    pub fn slope_relative(&self, other: Self) -> (Ty, Ty) {
         let di = other.i - self.i; // Difference in x-coordinates
         let dj = other.j - self.j; // Difference in y-coordinates
         (di, dj) // Return the slope as a tuple
@@ -247,10 +268,48 @@ impl Coordinate {
     #[inline(always)]
     pub fn slope(&self, other: Self) -> Option<f64> {
         let (dx, dy) = self.slope_relative(other);
-        if dx == 0 {
+        if dx.is_zero() {
             None
         } else {
-            Some(dy as f64 / dx as f64)
+            Some(Self::f64_cast(dy) / Self::f64_cast(dx))
+        }
+    }
+}
+
+#[macro_export]
+macro_rules! to_unsigned_coordinate {
+    ($coord:expr) => {
+        Coordinate::<usize> {
+            i: $coord.i as usize,
+            j: $coord.j as usize,
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! to_signed_coordinate {
+    ($coord:expr) => {
+        Coordinate::<isize> {
+            i: $coord.i as isize,
+            j: $coord.j as isize,
+        }
+    };
+}
+
+impl From<Coordinate<isize>> for Coordinate<usize> {
+    fn from(coord: Coordinate<isize>) -> Self {
+        Coordinate {
+            i: coord.i as usize,
+            j: coord.j as usize,
+        }
+    }
+}
+
+impl From<Coordinate<usize>> for Coordinate<isize> {
+    fn from(coord: Coordinate<usize>) -> Self {
+        Coordinate {
+            i: coord.i as isize,
+            j: coord.j as isize,
         }
     }
 }
@@ -274,7 +333,10 @@ impl AddAssign for Coordinate {
     }
 }
 
-impl AddAssign<Direction> for Coordinate {
+impl<Ty> AddAssign<Direction> for Coordinate<Ty>
+where
+    Ty: Num + NumCast + AddAssign + Signed,
+{
     /// Adds a `Direction` to this `Coordinate`.
     ///
     /// # Examples
@@ -290,8 +352,8 @@ impl AddAssign<Direction> for Coordinate {
     #[inline(always)]
     fn add_assign(&mut self, direction: Direction) {
         let (dx, dy) = direction.offset();
-        self.i += dx;
-        self.j += dy;
+        self.i += Ty::from(dx).expect("Cannot convert to Ty");
+        self.j += Ty::from(dy).expect("Cannot convert to Ty");
     }
 }
 
@@ -343,15 +405,18 @@ impl Sub for Coordinate {
         }
     }
 }
-impl SubAssign for Coordinate {
+impl<Ty> SubAssign for Coordinate<Ty>
+where
+    Ty: SubAssign + NumCast + Num,
+{
     /// Subtracts another `Coordinate` from this one.
     ///
     /// # Examples
     ///
     /// ```
     /// use self::aoc_utils_rust::coordinate_system::Coordinate;
-    /// let mut coord1 = Coordinate::new(5, 7);
-    /// let coord2 = Coordinate::new(2, 3);
+    /// let mut coord1 = Coordinate::new(5usize, 7usize);
+    /// let coord2 = Coordinate::new(2usize, 3usize);
     /// coord1 -= coord2;
     /// assert_eq!(coord1.i, 3);
     /// assert_eq!(coord1.j, 4);
@@ -362,7 +427,10 @@ impl SubAssign for Coordinate {
     }
 }
 
-impl Add<direction::Direction> for Coordinate {
+impl<Ty> Add<Direction> for Coordinate<Ty>
+where
+    Ty: Num + NumCast + Signed,
+{
     type Output = Self;
 
     /// Adds a `Direction` to the `Coordinate`.
@@ -377,17 +445,20 @@ impl Add<direction::Direction> for Coordinate {
     /// assert_eq!(north_offset.i, 2);
     /// assert_eq!(north_offset.j, 4);
     /// ```
-    fn add(self, direction: direction::Direction) -> Self::Output {
+    fn add(self, direction: Direction) -> Self::Output {
         let (dx, dy) = direction.offset();
         Self {
-            i: self.i + dx,
-            j: self.j + dy,
+            i: self.i + Ty::from(dx).expect("Cannot convert to Ty"),
+            j: self.j + Ty::from(dy).expect("Cannot convert to Ty"),
         }
     }
 }
 
-impl Mul<i32> for Coordinate {
-    type Output = Coordinate;
+impl<Ty> Mul<Ty> for Coordinate<Ty>
+where
+    Ty: NumCast + Num + Mul + Copy,
+{
+    type Output = Coordinate<Ty>;
 
     /// Multiplies the `Coordinate` by a scalar value.
     ///
@@ -399,12 +470,12 @@ impl Mul<i32> for Coordinate {
     ///
     /// ```
     /// use self::aoc_utils_rust::coordinate_system::Coordinate;
-    /// let coord = Coordinate::new(3, 4);
+    /// let coord = Coordinate::new(3usize, 4);
     /// let result = coord * 2;
     /// assert_eq!(result.i, 6);
     /// assert_eq!(result.j, 8);
     /// ```
-    fn mul(self, rhs: i32) -> Self::Output {
+    fn mul(self, rhs: Ty) -> Self::Output {
         Self {
             i: self.i * rhs,
             j: self.j * rhs,
@@ -412,7 +483,10 @@ impl Mul<i32> for Coordinate {
     }
 }
 
-impl MulAssign<i32> for Coordinate {
+impl<Ty> MulAssign<Ty> for Coordinate<Ty>
+where
+    Ty: NumCast + Num + MulAssign + Copy,
+{
     /// Multiplies the `Coordinate` by a scalar value in place.
     ///
     /// # Arguments
@@ -423,18 +497,21 @@ impl MulAssign<i32> for Coordinate {
     ///
     /// ```
     /// use self::aoc_utils_rust::coordinate_system::Coordinate;
-    /// let mut coord = Coordinate::new(3, 4);
-    /// coord *= 2;
-    /// assert_eq!(coord.i, 6);
-    /// assert_eq!(coord.j, 8);
+    /// let mut coord = Coordinate::new(3f32, 4f32);
+    /// coord *= 2f32;
+    /// assert_eq!(coord.i, 6f32);
+    /// assert_eq!(coord.j, 8f32);
     /// ```
-    fn mul_assign(&mut self, rhs: i32) {
+    fn mul_assign(&mut self, rhs: Ty) {
         self.i *= rhs;
         self.j *= rhs;
     }
 }
 
-impl From<(i32, i32)> for Coordinate {
+impl<Ty> From<(Ty, Ty)> for Coordinate<Ty>
+where
+    Ty: Copy + fmt::Debug + fmt::Display + Num + NumCast + Signed,
+{
     /// Creates a `Coordinate` from a tuple.
     ///
     /// # Examples
@@ -446,12 +523,15 @@ impl From<(i32, i32)> for Coordinate {
     /// assert_eq!(coord.j, 4);
     /// ```
     #[inline(always)]
-    fn from((i, j): (i32, i32)) -> Self {
+    fn from((i, j): (Ty, Ty)) -> Self {
         Self::new(i, j)
     }
 }
 
-impl Into<(i32, i32)> for Coordinate {
+impl<Ty> Into<(Ty, Ty)> for Coordinate<Ty>
+where
+    Ty: Copy + fmt::Debug + fmt::Display + Num + NumCast + Signed,
+{
     /// Converts a `Coordinate` into a tuple.
     ///
     /// # Examples
@@ -463,12 +543,15 @@ impl Into<(i32, i32)> for Coordinate {
     /// assert_eq!(tuple, (3, 4));
     /// ```
     #[inline(always)]
-    fn into(self) -> (i32, i32) {
+    fn into(self) -> (Ty, Ty) {
         (self.i, self.j)
     }
 }
 
-impl Add<direction::FullDirection> for Coordinate {
+impl<Ty> Add<direction::FullDirection> for Coordinate<Ty>
+where
+    Ty: Num + NumCast + Copy + Signed,
+{
     type Output = Self;
 
     /// Adds a `FullDirection` to the `Coordinate`.
@@ -486,13 +569,16 @@ impl Add<direction::FullDirection> for Coordinate {
     fn add(self, direction: direction::FullDirection) -> Self::Output {
         let (dx, dy) = direction.offset();
         Self {
-            i: self.i + dx,
-            j: self.j + dy,
+            i: self.i + Ty::from(dx).expect("Cannot convert to Ty"),
+            j: self.j + Ty::from(dy).expect("Cannot convert to Ty"),
         }
     }
 }
 
-impl fmt::Debug for Coordinate {
+impl<Ty> fmt::Debug for Coordinate<Ty>
+where
+    Ty: Num + NumCast + fmt::Debug + fmt::Display,
+{
     /// Formats the `Coordinate` using the given formatter.
     ///
     /// # Examples
@@ -507,7 +593,10 @@ impl fmt::Debug for Coordinate {
     }
 }
 
-impl FromStr for Coordinate {
+impl<Ty: FromStr<Err = ParseIntError>> FromStr for Coordinate<Ty>
+where
+    Ty: Copy + fmt::Debug + fmt::Display + Num + NumCast + Signed,
+{
     type Err = String;
 
     /// Implements the `FromStr` trait for the `Coordinate` struct, allowing it to be created from a string representation.
@@ -517,7 +606,7 @@ impl FromStr for Coordinate {
     /// ```
     /// use self::aoc_utils_rust::coordinate_system::Coordinate;
     /// use std::str::FromStr;
-    /// let coord = Coordinate::from_str("3,4").unwrap();
+    /// let coord: Coordinate<i8> = Coordinate::from_str("3,4").unwrap();
     /// assert_eq!(coord.i, 3);
     /// assert_eq!(coord.j, 4);
     /// ```
@@ -525,12 +614,12 @@ impl FromStr for Coordinate {
         match line.split_once(',') {
             None => Err(format!("Invalid coordinate `{}`. Format is 'x,y'", line)),
             Some((i, j)) => {
-                let x = i.parse().map_err(|err: std::num::ParseIntError| {
-                    format!("Cannot parse i axis: {}", err)
-                })?;
-                let y = j.parse().map_err(|err: std::num::ParseIntError| {
-                    format!("Cannot parse j axis: {}", err)
-                })?;
+                let x = i
+                    .parse()
+                    .map_err(|err| format!("Cannot parse i axis: {}", err))?;
+                let y = j
+                    .parse()
+                    .map_err(|err| format!("Cannot parse j axis: {}", err))?;
                 Ok(Self::new(x, y))
             }
         }
@@ -575,7 +664,7 @@ pub mod direction {
         /// let north = Direction::North;
         /// assert_eq!(north.offset(), (-1, 0));
         /// ```
-        pub const fn offset(&self) -> (i32, i32) {
+        pub const fn offset(&self) -> (i8, i8) {
             match self {
                 Self::North => (-1, 0),
                 Self::East => (0, 1),
@@ -692,10 +781,10 @@ pub mod direction {
         }
     }
 
-    impl TryFrom<(i32, i32)> for Direction {
+    impl TryFrom<(i8, i8)> for Direction {
         type Error = &'static str;
 
-        fn try_from(value: (i32, i32)) -> Result<Self, Self::Error> {
+        fn try_from(value: (i8, i8)) -> Result<Self, Self::Error> {
             match value {
                 (-1, 0) => Ok(Self::North),
                 (0, 1) => Ok(Self::East),
@@ -756,7 +845,7 @@ pub mod direction {
         /// let northeast = FullDirection::NorthEast;
         /// assert_eq!(northeast.offset(), (-1, 1));
         /// ```
-        pub const fn offset(&self) -> (i32, i32) {
+        pub const fn offset(&self) -> (i8, i8) {
             match self {
                 Self::North => Direction::North.offset(),
                 Self::NorthEast => (-1, 1),

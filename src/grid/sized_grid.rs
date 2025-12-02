@@ -1,6 +1,7 @@
 use crate::coordinate_system::Coordinate;
 use crate::grid::iterators::{GridIter, GridIterMut, RowIterMut};
 use crate::grid::{Grid, GridMut};
+use crate::to_unsigned_coordinate;
 use std::fmt::{Debug, Formatter};
 
 /// A statically sized grid structure.
@@ -122,8 +123,8 @@ impl<T, const ROW: usize, const COL: usize> SizedGrid<T, ROW, COL> {
     }
 
     #[inline(always)]
-    pub const fn get(&self, position: &Coordinate) -> Option<&T> {
-        if self.is_valid_coordinate(position) {
+    pub const fn get(&self, position: &Coordinate<isize>) -> Option<&T> {
+        if self.is_valid_coordinate(&position) {
             Some(&self.matrix[position.i as usize][position.j as usize])
         } else {
             None
@@ -171,12 +172,41 @@ impl<T, const ROW: usize, const COL: usize> SizedGrid<T, ROW, COL> {
         &self.matrix[position.i as usize][position.j as usize]
     }
 
+    /// Checks if the given coordinate is within the valid bounds of the grid.
+    ///
+    /// # Arguments
+    ///
+    /// * `coordinate` - The coordinate to check.
+    ///
+    /// # Returns
+    ///
+    /// `true` if the coordinate is within bounds, otherwise `false`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use aoc_utils_rust::coordinate_system::Coordinate;
+    /// use aoc_utils_rust::grid::sized_grid::SizedGrid;
+    ///
+    /// const ROW: usize = 5;
+    /// const COL: usize = 5;
+    ///
+    /// let grid = SizedGrid::<i32, 2, 3>::from([[1, 2, 3], [4, 5, 6]]);
+    ///
+    /// let valid_coord = Coordinate { i: 1, j: 2 };
+    /// let invalid_coord_neg = Coordinate { i: -1, j: 3 };
+    /// let invalid_coord_out = Coordinate { i: 5, j: 5 };
+    ///
+    /// assert!(grid.is_valid_coordinate(&valid_coord));
+    /// assert!(!grid.is_valid_coordinate(&invalid_coord_neg));
+    /// assert!(!grid.is_valid_coordinate(&invalid_coord_out));
+    /// ```
     #[inline(always)]
-    pub const fn is_valid_coordinate(&self, coordinate: &Coordinate) -> bool {
+    pub const fn is_valid_coordinate(&self, coordinate: &Coordinate<isize>) -> bool {
         0 <= coordinate.i
-            && coordinate.i < ROW as i32
+            && coordinate.i < ROW as isize
             && 0 <= coordinate.j
-            && coordinate.j < COL as i32
+            && coordinate.j < COL as isize
     }
 
     #[inline(always)]
@@ -291,11 +321,11 @@ impl<T, const ROW: usize, const COL: usize> Grid<T> for SizedGrid<T, ROW, COL> {
     /// assert_eq!(grid.get(&Coordinate::new(2, 3)), None);
     /// ```
     #[inline]
-    fn get(&self, position: &Coordinate) -> Option<&T> {
+    fn get(&self, position: &Coordinate<isize>) -> Option<&T> {
         self.get(position)
     }
 
-    fn is_valid_coordinate(&self, coordinate: &Coordinate) -> bool {
+    fn is_valid_coordinate(&self, coordinate: &Coordinate<isize>) -> bool {
         self.is_valid_coordinate(coordinate)
     }
 
@@ -378,9 +408,10 @@ impl<T, const N: usize, const M: usize> GridMut<T> for SizedGrid<T, N, M> {
     /// assert_eq!(grid.get(&coordinate), Some(&10));
     /// ```
     #[inline(always)]
-    fn get_mut(&mut self, position: &Coordinate) -> Option<&mut T> {
+    fn get_mut(&mut self, position: &Coordinate<isize>) -> Option<&mut T> {
         if self.is_valid_coordinate(&position) {
-            Some(&mut self.matrix[position.i as usize][position.j as usize])
+            let position = to_unsigned_coordinate!(position);
+            Some(&mut self.matrix[position.i][position.j])
         } else {
             None
         }

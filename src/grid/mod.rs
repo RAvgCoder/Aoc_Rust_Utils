@@ -51,7 +51,7 @@ pub trait Grid<T> {
     /// # Returns
     ///
     /// An `Option` containing a reference to the element, or `None` if the coordinate is invalid.
-    fn get(&self, coordinate: &Coordinate) -> Option<&T>;
+    fn get(&self, coordinate: &Coordinate<isize>) -> Option<&T>;
 
     /// Checks if the specified coordinate is valid within the grid.
     ///
@@ -62,7 +62,7 @@ pub trait Grid<T> {
     /// # Returns
     ///
     /// `true` if the coordinate is valid, `false` otherwise.
-    fn is_valid_coordinate(&self, coordinate: &Coordinate) -> bool {
+    fn is_valid_coordinate(&self, coordinate: &Coordinate<isize>) -> bool {
         (0..self.num_rows()).contains(&(coordinate.i as usize))
             && (0..self.num_cols()).contains(&(coordinate.j as usize))
     }
@@ -71,8 +71,8 @@ pub trait Grid<T> {
     ///
     /// # Returns
     /// A `Coordinate` representing the position of the bottom right element in the grid.
-    fn bottom_right_coordinate(&self) -> Coordinate {
-        Coordinate::new((self.num_rows() - 1) as i32, (self.num_cols() - 1) as i32)
+    fn bottom_right_coordinate(&self) -> Coordinate<usize> {
+        Coordinate::new(self.num_rows() - 1, self.num_cols() - 1)
     }
 
     /// Returns an iterator over the elements of the grid.
@@ -140,7 +140,7 @@ pub trait GridMut<T>: Grid<T> {
     /// # Returns
     ///
     /// An `Option` containing a mutable reference to the element, or `None` if the coordinate is invalid.
-    fn get_mut(&mut self, coordinate: &Coordinate) -> Option<&mut T>;
+    fn get_mut(&mut self, coordinate: &Coordinate<isize>) -> Option<&mut T>;
 
     /// Returns an iterator over the rows of the grid, allowing mutable access to each row.
     ///
@@ -279,7 +279,7 @@ pub mod iterators {
         /// let mut iter = grid.iter();
         /// let mut first_row = iter.next().unwrap();
         /// let first_element = first_row.next().unwrap();
-        /// assert_eq!(first_element, (Coordinate::new(0, 0), &1));
+        /// assert_eq!(first_element, (Coordinate::new(0usize, 0usize), &1));
         /// ```
         #[inline(always)]
         fn next(&mut self) -> Option<Self::Item> {
@@ -366,7 +366,7 @@ pub mod iterators {
     }
 
     impl<'a, T> Iterator for RowIter<'a, T> {
-        type Item = (Coordinate, &'a T);
+        type Item = (Coordinate<usize>, &'a T);
 
         /// Advances the iterator and returns the next element in the row.
         ///
@@ -392,7 +392,7 @@ pub mod iterators {
             let items = std::mem::take(&mut self.row_item);
             if let Some((item, rest)) = items.split_first() {
                 self.row_item = rest;
-                let coordinate = Coordinate::new(self.row as i32, self.col as i32);
+                let coordinate = Coordinate::new(self.row, self.col);
                 self.col += 1;
                 Some((coordinate, item))
             } else {
@@ -451,6 +451,7 @@ pub mod iterators {
     where
         I: Iterator<Item = RowIterMut<'a, T>>,
     {
+        #[inline(always)]
         pub(crate) fn new(iter: I) -> Self {
             Self { grid_rows: iter }
         }
@@ -531,7 +532,7 @@ pub mod iterators {
     }
 
     impl<'a, T> Iterator for RowIterMut<'a, T> {
-        type Item = (Coordinate, &'a mut T);
+        type Item = (Coordinate<usize>, &'a mut T);
 
         /// Advances the iterator and returns the next element in the row.
         ///
@@ -558,7 +559,7 @@ pub mod iterators {
             let items = std::mem::take(&mut self.row_item);
             if let Some((item, rest)) = items.split_first_mut() {
                 self.row_item = rest;
-                let coordinate = Coordinate::new(self.row as i32, self.col as i32);
+                let coordinate = Coordinate::new(self.row, self.col);
                 self.col += 1;
                 Some((coordinate, item))
             } else {

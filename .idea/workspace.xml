@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="ALL" />
+  </component>
+  <component name="CargoProjects">
+    <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="dd3375af-30ca-4222-ad07-475bdf75bdca" name="Changes" comment="_" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ChangesViewManager">
+    <option name="groupingKeys">
+      <option value="directory" />
+    </option>
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="RsBuildProfile:test" />
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Rust File" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="EternalGrid" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;RAvgCoder&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/RAvgCoder/Aoc_Rust_Utils.git&quot;,
+    &quot;accountId&quot;: &quot;8ce74ac2-95e1-4edf-9f3d-4016fb71651f&quot;
+  }
+}</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$USER_HOME$/AppData/Local/JetBrains/RustRover2024.2/intellij-rust/stdlib-local-copy/1.80.1-0063d810583062a54c4bec3c9f758f6bf82f5869/library/alloc/src/boxed.rs" root0="SKIP_INSPECTION" />
+  </component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="akkvhuzx" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 2
+}</component>
+  <component name="ProjectId" id="2pcX3YwkilLgMvqT1wgVaplXH9D" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Cargo.Doctest of coordinate_system::Coordinate (line 10).executor": "Run",
+    "Cargo.Doctest of coordinate_system::direction::full_direction_list (line 283).executor": "Run",
+    "Cargo.Doctest of coordinate_system::manhattan_distance (line 97).executor": "Run",
+    "Cargo.Doctest of coordinate_system::new (line 83).executor": "Run",
+    "Cargo.Doctest of coordinate_system::transpose (line 110).executor": "Run",
+    "Cargo.Doctest of graph::get_in_degrees (line 549).executor": "Run",
+    "Cargo.Doctest of graph::topological_sort (line 630).executor": "Run",
+    "Cargo.Doctest of grid::iterators::GridIter (line 187).executor": "Run",
+    "Cargo.Run aoc_utils_rust.executor": "Run",
+    "Cargo.Test.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.rust.reset.selective.auto.import": "true",
+    "git-widget-placeholder": "master",
+    "last_opened_file_path": "C:/Users/egbor/Videos/AdventOfCode_/aoc_utils_rust/src",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
+    "org.rust.first.attach.projects": "true",
+    "settings.editor.selected.configurable": "language.rust.cargo.check",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\egbor\Videos\AdventOfCode_\aoc_utils_rust\src" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\egbor\Videos\AdventOfCode_\aoc_utils_rust\src" />
+    </key>
+  </component>
+  <component name="RsExternalLinterProjectSettings">
+    <option name="runOnTheFly" value="true" />
+  </component>
+  <component name="RunManager" selected="Cargo.Doctest of graph::topological_sort (line 630)">
+    <configuration name="Doctest of coordinate_system::transpose (line 110)" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package aoc_utils_rust --doc &quot;coordinate_system::transpose\ (line\ 110)&quot;" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Doctest of graph::get_in_degrees (line 549)" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package aoc_utils_rust --doc &quot;graph::get_in_degrees\ (line\ 549)&quot; -- --ignored" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Doctest of graph::topological_sort (line 630)" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package aoc_utils_rust --doc &quot;graph::topological_sort\ (line\ 630)&quot;" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Doctest of grid::iterators::GridIter (line 187)" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="command" value="test --package aoc_utils_rust --doc &quot;grid::iterators::GridIter\ (line\ 187)&quot;" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Run aoc_utils_rust" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="buildProfileId" value="test" />
+      <option name="command" value="run --package aoc_utils_rust --bin aoc_utils_rust" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="command" value="test --package aoc_utils_rust --lib tests" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Cargo.Run aoc_utils_rust" />
+        <item itemvalue="Cargo.Doctest of grid::iterators::GridIter (line 187)" />
+        <item itemvalue="Cargo.Doctest of graph::topological_sort (line 630)" />
+        <item itemvalue="Cargo.Doctest of graph::get_in_degrees (line 549)" />
+        <item itemvalue="Cargo.Doctest of coordinate_system::transpose (line 110)" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="RustProjectSettings">
+    <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="dd3375af-30ca-4222-ad07-475bdf75bdca" name="Changes" comment="" />
+      <created>1733066138793</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1733066138793</updated>
+      <workItem from="1733066140125" duration="47133000" />
+      <workItem from="1733524234753" duration="4000" />
+      <workItem from="1733614852056" duration="5164000" />
+      <workItem from="1734131399006" duration="8671000" />
+      <workItem from="1734555035700" duration="2438000" />
+      <workItem from="1736957600882" duration="296000" />
+    </task>
+    <task id="LOCAL-00001" summary="Finished writing tests and documentation for graph.rs">
+      <option name="closed" value="true" />
+      <created>1733087142126</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1733087142126</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Finished writing tests and documentation for coordinate_system.rs">
+      <option name="closed" value="true" />
+      <created>1733087153598</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1733087153598</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Finished writing tests and documentation for coordinate_system.rs">
+      <option name="closed" value="true" />
+      <created>1733392132314</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1733392132314</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Finished writing tests and documentation for graph.rs">
+      <option name="closed" value="true" />
+      <created>1733392154044</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1733392154044</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Finished writing tests and documentation for mod.rs">
+      <option name="closed" value="true" />
+      <created>1733397492822</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1733397492822</updated>
+    </task>
+    <task id="LOCAL-00006" summary="CleanUp">
+      <option name="closed" value="true" />
+      <created>1733436148829</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1733436148829</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Added equality checks for IterStruct Objects and performed some refactoring">
+      <option name="closed" value="true" />
+      <created>1733436342930</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1733436342930</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Added a grid slice object that can take an immutable view into a grid">
+      <option name="closed" value="true" />
+      <created>1733436441707</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1733436441708</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Fixed tests missing imports">
+      <option name="closed" value="true" />
+      <created>1733436888052</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1733436888052</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Finished writing tests and documentation for unsized_grid.rs">
+      <option name="closed" value="true" />
+      <created>1733447210376</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1733447210376</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Moved is_valid_coord to the grid trait">
+      <option name="closed" value="true" />
+      <created>1733448366981</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1733448366981</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Moved is_valid_coord to the grid trait">
+      <option name="closed" value="true" />
+      <created>1733448382885</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1733448382885</updated>
+    </task>
+    <task id="LOCAL-00013" summary="Finished writing tests and documentation for sized_grid.rs">
+      <option name="closed" value="true" />
+      <created>1733448405281</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1733448405281</updated>
+    </task>
+    <task id="LOCAL-00014" summary="Finished writing tests and documentation for day_setup.rs">
+      <option name="closed" value="true" />
+      <created>1733448709298</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1733448709298</updated>
+    </task>
+    <task id="LOCAL-00015" summary="Fixed a bug with the topological algorithm">
+      <option name="closed" value="true" />
+      <created>1733620131170</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1733620131170</updated>
+    </task>
+    <task id="LOCAL-00016" summary="_">
+      <option name="closed" value="true" />
+      <created>1734131449001</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1734131449001</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Finished writing tests and documentation for coordinate_system.rs" />
+    <MESSAGE value="Finished writing tests and documentation for graph.rs" />
+    <MESSAGE value="Finished writing tests and documentation for mod.rs" />
+    <MESSAGE value="CleanUp" />
+    <MESSAGE value="Added equality checks for IterStruct Objects and performed some refactoring" />
+    <MESSAGE value="Added a grid slice object that can take an immutable view into a grid" />
+    <MESSAGE value="Fixed tests missing imports" />
+    <MESSAGE value="Finished writing tests and documentation for unsized_grid.rs" />
+    <MESSAGE value="Moved is_valid_coord to the grid trait" />
+    <MESSAGE value="Finished writing tests and documentation for sized_grid.rs" />
+    <MESSAGE value="Finished writing tests and documentation for day_setup.rs" />
+    <MESSAGE value="Fixed a bug with the topological algorithm" />
+    <MESSAGE value="_" />
+    <option name="LAST_COMMIT_MESSAGE" value="_" />
+  </component>
+</project>

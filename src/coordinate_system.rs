@@ -335,9 +335,11 @@ impl AddAssign for Coordinate {
 
 impl<Ty> AddAssign<Direction> for Coordinate<Ty>
 where
-    Ty: Num + NumCast + AddAssign + Signed,
+    Ty: Num + NumCast + Copy,
 {
     /// Adds a `Direction` to this `Coordinate`.
+    ///
+    /// For unsigned types, panics if the resulting coordinate would have negative values.
     ///
     /// # Examples
     ///
@@ -349,11 +351,61 @@ where
     /// assert_eq!(coord.i, 2);
     /// assert_eq!(coord.j, 4);
     /// ```
+    ///
+    /// Works with unsigned types:
+    /// ```
+    /// use self::aoc_utils_rust::coordinate_system::Coordinate;
+    /// use self::aoc_utils_rust::coordinate_system::direction::Direction;
+    /// let mut coord = Coordinate::new(3usize, 4usize);
+    /// coord += Direction::East;
+    /// assert_eq!(coord.i, 3);
+    /// assert_eq!(coord.j, 5);
+    /// ```
     #[inline(always)]
     fn add_assign(&mut self, direction: Direction) {
         let (dx, dy) = direction.offset();
-        self.i += Ty::from(dx).expect("Cannot convert to Ty");
-        self.j += Ty::from(dy).expect("Cannot convert to Ty");
+        let i_isize = self.i.to_isize().expect("Cannot convert i to isize");
+        let j_isize = self.j.to_isize().expect("Cannot convert j to isize");
+        self.i = Ty::from(i_isize + dx as isize).expect("Coordinate overflow in i");
+        self.j = Ty::from(j_isize + dy as isize).expect("Coordinate overflow in j");
+    }
+}
+
+impl<Ty> AddAssign<direction::FullDirection> for Coordinate<Ty>
+where
+    Ty: Num + NumCast + Copy,
+{
+    /// Adds a `FullDirection` to this `Coordinate`.
+    ///
+    /// For unsigned types, panics if the resulting coordinate would have negative values.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use self::aoc_utils_rust::coordinate_system::Coordinate;
+    /// use self::aoc_utils_rust::coordinate_system::direction::FullDirection;
+    /// let mut coord = Coordinate::new(5, 5);
+    /// coord += FullDirection::NorthWest;
+    /// assert_eq!(coord.i, 4);
+    /// assert_eq!(coord.j, 4);
+    /// ```
+    ///
+    /// Works with unsigned types:
+    /// ```
+    /// use self::aoc_utils_rust::coordinate_system::Coordinate;
+    /// use self::aoc_utils_rust::coordinate_system::direction::FullDirection;
+    /// let mut coord = Coordinate::new(3usize, 4usize);
+    /// coord += FullDirection::NorthEast;
+    /// assert_eq!(coord.i, 2);
+    /// assert_eq!(coord.j, 5);
+    /// ```
+    #[inline(always)]
+    fn add_assign(&mut self, direction: direction::FullDirection) {
+        let (dx, dy) = direction.offset();
+        let i_isize = self.i.to_isize().expect("Cannot convert i to isize");
+        let j_isize = self.j.to_isize().expect("Cannot convert j to isize");
+        self.i = Ty::from(i_isize + dx as isize).expect("Coordinate overflow in i");
+        self.j = Ty::from(j_isize + dy as isize).expect("Coordinate overflow in j");
     }
 }
 
@@ -429,11 +481,13 @@ where
 
 impl<Ty> Add<Direction> for Coordinate<Ty>
 where
-    Ty: Num + NumCast + Signed,
+    Ty: Num + NumCast + Copy,
 {
     type Output = Self;
 
     /// Adds a `Direction` to the `Coordinate`.
+    ///
+    /// For unsigned types, panics if the resulting coordinate would have negative values.
     ///
     /// # Examples
     ///
@@ -445,11 +499,23 @@ where
     /// assert_eq!(north_offset.i, 2);
     /// assert_eq!(north_offset.j, 4);
     /// ```
+    ///
+    /// Works with unsigned types:
+    /// ```
+    /// use self::aoc_utils_rust::coordinate_system::Coordinate;
+    /// use self::aoc_utils_rust::coordinate_system::direction::Direction;
+    /// let coord = Coordinate::new(3usize, 4usize);
+    /// let south_offset = coord + Direction::South;
+    /// assert_eq!(south_offset.i, 4);
+    /// assert_eq!(south_offset.j, 4);
+    /// ```
     fn add(self, direction: Direction) -> Self::Output {
         let (dx, dy) = direction.offset();
+        let i_isize = self.i.to_isize().expect("Cannot convert i to isize");
+        let j_isize = self.j.to_isize().expect("Cannot convert j to isize");
         Self {
-            i: self.i + Ty::from(dx).expect("Cannot convert to Ty"),
-            j: self.j + Ty::from(dy).expect("Cannot convert to Ty"),
+            i: Ty::from(i_isize + dx as isize).expect("Coordinate overflow in i"),
+            j: Ty::from(j_isize + dy as isize).expect("Coordinate overflow in j"),
         }
     }
 }
@@ -550,11 +616,13 @@ where
 
 impl<Ty> Add<direction::FullDirection> for Coordinate<Ty>
 where
-    Ty: Num + NumCast + Copy + Signed,
+    Ty: Num + NumCast + Copy,
 {
     type Output = Self;
 
     /// Adds a `FullDirection` to the `Coordinate`.
+    ///
+    /// For unsigned types, panics if the resulting coordinate would have negative values.
     ///
     /// # Examples
     ///
@@ -566,11 +634,23 @@ where
     /// assert_eq!(northeast_offset.i, 2);
     /// assert_eq!(northeast_offset.j, 5);
     /// ```
+    ///
+    /// Works with unsigned types:
+    /// ```
+    /// use self::aoc_utils_rust::coordinate_system::Coordinate;
+    /// use self::aoc_utils_rust::coordinate_system::direction::FullDirection;
+    /// let coord = Coordinate::new(10usize, 10usize);
+    /// let southwest_offset = coord + FullDirection::SouthWest;
+    /// assert_eq!(southwest_offset.i, 11);
+    /// assert_eq!(southwest_offset.j, 9);
+    /// ```
     fn add(self, direction: direction::FullDirection) -> Self::Output {
         let (dx, dy) = direction.offset();
+        let i_isize = self.i.to_isize().expect("Cannot convert i to isize");
+        let j_isize = self.j.to_isize().expect("Cannot convert j to isize");
         Self {
-            i: self.i + Ty::from(dx).expect("Cannot convert to Ty"),
-            j: self.j + Ty::from(dy).expect("Cannot convert to Ty"),
+            i: Ty::from(i_isize + dx as isize).expect("Coordinate overflow in i"),
+            j: Ty::from(j_isize + dy as isize).expect("Coordinate overflow in j"),
         }
     }
 }
@@ -920,5 +1000,168 @@ pub mod direction {
                 _ => Err("Invalid direction"),
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_add_assign_direction_signed_types() {
+        let mut coord_i32 = Coordinate::new(10i32, 20i32);
+        coord_i32 += Direction::North;
+        assert_eq!(coord_i32.i, 9);
+        assert_eq!(coord_i32.j, 20);
+
+        let mut coord_i64 = Coordinate::new(100i64, 200i64);
+        coord_i64 += Direction::East;
+        assert_eq!(coord_i64.i, 100);
+        assert_eq!(coord_i64.j, 201);
+
+        let mut coord_isize = Coordinate::new(50isize, 75isize);
+        coord_isize += Direction::South;
+        assert_eq!(coord_isize.i, 51);
+        assert_eq!(coord_isize.j, 75);
+
+        let mut coord_i16 = Coordinate::new(15i16, 25i16);
+        coord_i16 += Direction::West;
+        assert_eq!(coord_i16.i, 15);
+        assert_eq!(coord_i16.j, 24);
+    }
+
+    #[test]
+    fn test_add_assign_direction_unsigned_types() {
+        let mut coord_usize = Coordinate::new(10usize, 20usize);
+        coord_usize += Direction::South;
+        assert_eq!(coord_usize.i, 11);
+        assert_eq!(coord_usize.j, 20);
+
+        let mut coord_u32 = Coordinate::new(100u32, 200u32);
+        coord_u32 += Direction::East;
+        assert_eq!(coord_u32.i, 100);
+        assert_eq!(coord_u32.j, 201);
+
+        let mut coord_u64 = Coordinate::new(500u64, 750u64);
+        coord_u64 += Direction::West;
+        assert_eq!(coord_u64.i, 500);
+        assert_eq!(coord_u64.j, 749);
+
+        let mut coord_u16 = Coordinate::new(15u16, 25u16);
+        coord_u16 += Direction::North;
+        assert_eq!(coord_u16.i, 14);
+        assert_eq!(coord_u16.j, 25);
+    }
+
+    #[test]
+    fn test_add_direction_signed_types() {
+        let coord_i32 = Coordinate::new(10i32, 20i32);
+        let result = coord_i32 + Direction::North;
+        assert_eq!(result.i, 9);
+        assert_eq!(result.j, 20);
+
+        let coord_i64 = Coordinate::new(100i64, 200i64);
+        let result = coord_i64 + Direction::West;
+        assert_eq!(result.i, 100);
+        assert_eq!(result.j, 199);
+
+        let coord_isize = Coordinate::new(50isize, 75isize);
+        let result = coord_isize + Direction::South;
+        assert_eq!(result.i, 51);
+        assert_eq!(result.j, 75);
+    }
+
+    #[test]
+    fn test_add_direction_unsigned_types() {
+        let coord_usize = Coordinate::new(10usize, 20usize);
+        let result = coord_usize + Direction::South;
+        assert_eq!(result.i, 11);
+        assert_eq!(result.j, 20);
+
+        let coord_u32 = Coordinate::new(100u32, 200u32);
+        let result = coord_u32 + Direction::East;
+        assert_eq!(result.i, 100);
+        assert_eq!(result.j, 201);
+
+        let coord_u8 = Coordinate::new(10u8, 20u8);
+        let result = coord_u8 + Direction::West;
+        assert_eq!(result.i, 10);
+        assert_eq!(result.j, 19);
+    }
+
+    #[test]
+    fn test_add_assign_full_direction_signed_types() {
+        let mut coord_i32 = Coordinate::new(10i32, 20i32);
+        coord_i32 += direction::FullDirection::NorthEast;
+        assert_eq!(coord_i32.i, 9);
+        assert_eq!(coord_i32.j, 21);
+
+        let mut coord_i64 = Coordinate::new(100i64, 200i64);
+        coord_i64 += direction::FullDirection::SouthWest;
+        assert_eq!(coord_i64.i, 101);
+        assert_eq!(coord_i64.j, 199);
+
+        let mut coord_isize = Coordinate::new(50isize, 75isize);
+        coord_isize += direction::FullDirection::NorthWest;
+        assert_eq!(coord_isize.i, 49);
+        assert_eq!(coord_isize.j, 74);
+    }
+
+    #[test]
+    fn test_add_assign_full_direction_unsigned_types() {
+        let mut coord_usize = Coordinate::new(10usize, 20usize);
+        coord_usize += direction::FullDirection::SouthEast;
+        assert_eq!(coord_usize.i, 11);
+        assert_eq!(coord_usize.j, 21);
+
+        let mut coord_u32 = Coordinate::new(100u32, 200u32);
+        coord_u32 += direction::FullDirection::NorthEast;
+        assert_eq!(coord_u32.i, 99);
+        assert_eq!(coord_u32.j, 201);
+
+        let mut coord_u64 = Coordinate::new(500u64, 750u64);
+        coord_u64 += direction::FullDirection::SouthWest;
+        assert_eq!(coord_u64.i, 501);
+        assert_eq!(coord_u64.j, 749);
+    }
+
+    #[test]
+    fn test_add_full_direction_signed_types() {
+        let coord_i32 = Coordinate::new(10i32, 20i32);
+        let result = coord_i32 + direction::FullDirection::NorthEast;
+        assert_eq!(result.i, 9);
+        assert_eq!(result.j, 21);
+
+        let coord_i16 = Coordinate::new(50i16, 60i16);
+        let result = coord_i16 + direction::FullDirection::SouthWest;
+        assert_eq!(result.i, 51);
+        assert_eq!(result.j, 59);
+    }
+
+    #[test]
+    fn test_add_full_direction_unsigned_types() {
+        let coord_usize = Coordinate::new(10usize, 20usize);
+        let result = coord_usize + direction::FullDirection::SouthEast;
+        assert_eq!(result.i, 11);
+        assert_eq!(result.j, 21);
+
+        let coord_u16 = Coordinate::new(50u16, 50u16);
+        let result = coord_u16 + direction::FullDirection::NorthWest;
+        assert_eq!(result.i, 49);
+        assert_eq!(result.j, 49);
+    }
+
+    #[test]
+    #[should_panic(expected = "Coordinate overflow")]
+    fn test_unsigned_underflow_direction() {
+        let coord = Coordinate::new(0usize, 5usize);
+        let _ = coord + Direction::North;
+    }
+
+    #[test]
+    #[should_panic(expected = "Coordinate overflow")]
+    fn test_unsigned_underflow_full_direction() {
+        let coord = Coordinate::new(0usize, 0usize);
+        let _ = coord + direction::FullDirection::NorthWest;
     }
 }

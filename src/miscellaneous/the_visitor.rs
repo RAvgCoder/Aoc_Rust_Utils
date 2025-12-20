@@ -1,5 +1,7 @@
 use crate::coordinate_system::Coordinate;
-use crate::grid::GridMut;
+use crate::grid::{Grid, GridMut};
+use crate::grid::sized_grid::SizedGrid;
+use crate::grid::unsized_grid::UnsizedGrid;
 use std::fmt::{Debug, Formatter};
 use std::ops::Deref;
 
@@ -64,32 +66,6 @@ impl<G> TheVisitor<G>
 where
     G: GridMut<Timer>,
 {
-    /// Creates a new `TheVisitor` instance with the given backing grid.
-    ///
-    /// # Arguments
-    /// * `backing_grid` - The grid to be used as the backing grid.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use aoc_utils_rust::grid::sized_grid::SizedGrid;
-    /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
-    /// use aoc_utils_rust::miscellaneous::the_visitor::{TheVisitor, Timer};
-    ///
-    /// let grid = UnsizedGrid::from(vec![vec![Timer::BLANK; 4]; 4]);
-    /// let visitor = TheVisitor::new(grid);
-    ///
-    /// let grid = SizedGrid::<Timer, 4, 4>::new(Timer::BLANK);
-    /// let visitor = TheVisitor::new(grid);
-    /// ```
-    #[inline]
-    pub const fn new(backing_grid: G) -> Self {
-        Self {
-            backing_grid,
-            curr_time: Timer::new(),
-        }
-    }
-
     /// Clears the visitor, incrementing the timer. If the timer overflows, the grid is reset.
     ///
     /// # Examples
@@ -99,8 +75,8 @@ where
     /// use aoc_utils_rust::grid::sized_grid::SizedGrid;
     /// use aoc_utils_rust::miscellaneous::the_visitor::{TheVisitor, Timer};
     ///
-    /// let grid = SizedGrid::<Timer, 4, 4>::new(Timer::BLANK);
-    /// let mut visitor = TheVisitor::new(grid);
+    /// let grid = SizedGrid::<Timer, 4, 4>::new("Dummy Data");
+    /// let mut visitor = <TheVisitor<SizedGrid<Timer, 4, 4>>>::new(&grid);
     ///
     /// for _ in 0..u16::MAX { // Simulate a lot of clearing
     ///     visitor.mark_visited(Coordinate::new(1, 1));
@@ -131,8 +107,8 @@ where
     /// use aoc_utils_rust::miscellaneous::the_visitor::TheVisitor;
     /// use aoc_utils_rust::miscellaneous::the_visitor::Timer;
     ///
-    /// let mut grid = UnsizedGrid::from(vec![vec![Timer::BLANK; 4]; 4]);
-    /// let mut visitor = TheVisitor::new(grid);
+    /// let mut grid = UnsizedGrid::from(vec![vec!["Timer::BLANK"; 4]; 4]);
+    /// let mut visitor = <TheVisitor<UnsizedGrid<Timer>>>::new(&grid);
     /// visitor.mark_visited(Coordinate::new(1, 1));
     /// ```
     #[inline]
@@ -157,8 +133,8 @@ where
     /// use aoc_utils_rust::grid::sized_grid::SizedGrid;
     /// use aoc_utils_rust::miscellaneous::the_visitor::{TheVisitor, Timer};
     ///
-    /// let mut grid = SizedGrid::from([[Timer::BLANK; 4]; 4]);
-    /// let mut visitor = TheVisitor::new(grid);
+    /// let mut grid = SizedGrid::from([[false; 4]; 4]);
+    /// let mut visitor = <TheVisitor<SizedGrid<Timer, 4, 4>>>::new(&grid);
     /// visitor.mark_visited(Coordinate::new(1, 1));
     /// assert!(visitor.has_visited(Coordinate::new(1, 1)));
     /// visitor.unmark_visited(Coordinate::new(1, 1));
@@ -184,8 +160,8 @@ where
     /// use aoc_utils_rust::miscellaneous::the_visitor::TheVisitor;
     /// use aoc_utils_rust::miscellaneous::the_visitor::Timer;
     ///
-    /// let mut grid = UnsizedGrid::from(vec![vec![Timer::BLANK; 4]; 4]);
-    /// let mut visitor = TheVisitor::new(grid);
+    /// let mut grid = UnsizedGrid::from(vec![vec![0; 4]; 4]);
+    /// let mut visitor = <TheVisitor<UnsizedGrid<Timer>>>::new(&grid);
     /// visitor.mark_visited(Coordinate::new(1, 1));
     /// assert!(visitor.has_visited(Coordinate::new(1, 1)));
     /// assert!(!visitor.has_visited(Coordinate::new(0, 0)));
@@ -199,6 +175,53 @@ where
         self.backing_grid
             .iter_mut()
             .for_each(|row| row.for_each(|(_, timer)| timer.reset()));
+    }
+}
+
+impl<const ROW: usize, const COL: usize> TheVisitor<SizedGrid<Timer, ROW, COL>> {
+    /// Creates a new `TheVisitor` for a `SizedGrid` with the same dimensions as the reference grid.
+    ///
+    /// # Arguments
+    /// * `_ref_grid` - A reference grid used only to infer the dimensions.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use aoc_utils_rust::grid::sized_grid::SizedGrid;
+    /// use aoc_utils_rust::miscellaneous::the_visitor::{TheVisitor, Timer};
+    ///
+    /// let grid = SizedGrid::<i32, 4, 4>::new(0);
+    /// let visitor = <TheVisitor<SizedGrid<Timer, 4, 4>>>::new(&grid);
+    /// ```
+    pub fn new<T>(_ref_grid: &SizedGrid<T, ROW, COL>) -> Self {
+        Self {
+            backing_grid: SizedGrid::new(Timer::BLANK),
+            curr_time: Timer::new(),
+        }
+    }
+}
+
+impl TheVisitor<UnsizedGrid<Timer>> {
+    /// Creates a new `TheVisitor` for an `UnsizedGrid` with the same dimensions as the reference grid.
+    ///
+    /// # Arguments
+    /// * `ref_grid` - A reference grid whose dimensions will be used.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use aoc_utils_rust::grid::unsized_grid::UnsizedGrid;
+    /// use aoc_utils_rust::grid::Grid;
+    /// use aoc_utils_rust::miscellaneous::the_visitor::{TheVisitor, Timer};
+    ///
+    /// let grid = UnsizedGrid::from(vec![vec![1, 2, 3], vec![4, 5, 6]]);
+    /// let visitor = <TheVisitor<UnsizedGrid<Timer>>>::new(&grid);
+    /// ```
+    pub fn new<T>(ref_grid: &UnsizedGrid<T>) -> Self {
+        Self {
+            backing_grid: UnsizedGrid::new(ref_grid.num_rows(), ref_grid.num_cols(), Timer::BLANK),
+            curr_time: Timer::new(),
+        }
     }
 }
 

@@ -178,7 +178,7 @@ pub trait GridMut<T>: Grid<T> {
     ///
     /// assert_eq!(iter.next(), None);
     /// ```
-    fn iter_mut(&mut self) -> GridIterMut<T, impl Iterator<Item = RowIterMut<T>>>;
+    fn iter_mut<'a>(&'a mut self) -> GridIterMut<'a, T, impl Iterator<Item = RowIterMut<'a, T>>>;
 }
 
 pub mod iterators {

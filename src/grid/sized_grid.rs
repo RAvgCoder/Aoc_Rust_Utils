@@ -448,7 +448,7 @@ impl<T, const N: usize, const M: usize> GridMut<T> for SizedGrid<T, N, M> {
     ///
     /// assert_eq!(iter.next(), None);
     /// ```
-    fn iter_mut(&mut self) -> GridIterMut<T, impl Iterator<Item = RowIterMut<T>>> {
+    fn iter_mut<'a>(&'a mut self) -> GridIterMut<'a, T, impl Iterator<Item = RowIterMut<'a, T>>> {
         GridIterMut::new(
             self.matrix
                 .iter_mut()

@@ -9,7 +9,6 @@ pub mod miscellaneous;
 mod test {
     #[test]
     fn test() {
-
         use crate::graph::{EdgeRelationship, StaticGraph};
         let mut graph = StaticGraph::new();
 

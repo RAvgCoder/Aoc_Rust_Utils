@@ -384,12 +384,17 @@ impl<N, E> StaticGraph<N, E> {
     pub fn get_edge(&self, edge_index: StaticEdgePtr) -> Option<&E> {
         self.edges.get(edge_index.idx).map(|edge| &edge.data)
     }
-    
+
     /// Gets the edge connection of the edge at the specified index.
-    /// 
-    /// 
-    pub fn get_edge_connection(&self, edge_index: StaticEdgePtr) -> Option<(StaticNodePtr, StaticNodePtr)> {
-        self.edges.get(edge_index.idx).map(|edge| (edge.holder, edge.to))
+    ///
+    ///
+    pub fn get_edge_connection(
+        &self,
+        edge_index: StaticEdgePtr,
+    ) -> Option<(StaticNodePtr, StaticNodePtr)> {
+        self.edges
+            .get(edge_index.idx)
+            .map(|edge| (edge.holder, edge.to))
     }
 
     pub fn get_edge_mut(&mut self, edge_index: StaticEdgePtr) -> Option<&mut E> {

@@ -1,7 +1,7 @@
 use crate::coordinate_system::Coordinate;
-use crate::grid::{Grid, GridMut};
 use crate::grid::sized_grid::SizedGrid;
 use crate::grid::unsized_grid::UnsizedGrid;
+use crate::grid::{Grid, GridMut};
 use std::fmt::{Debug, Formatter};
 use std::ops::Deref;
 

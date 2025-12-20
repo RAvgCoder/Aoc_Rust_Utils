@@ -60,7 +60,7 @@ impl<N, E> StaticGraph<N, E> {
                 zero_in_degree_nodes.push(*node_ptr);
             }
         }
-        
+
         // Process nodes with zero in-degree
         while let Some(node) = zero_in_degree_nodes.pop() {
             result.push(node);
@@ -162,7 +162,7 @@ impl<N, E> StaticGraph<N, E> {
         let mut edges = self.edges.iter().enumerate().collect::<Vec<_>>();
         // Sort edges by weight in ascending order
         edges.sort_by_key(|(_, edge)| &edge.data);
-        
+
         let mut result = Vec::new();
         let mut uf = UnionFind::new(self);
 
@@ -382,7 +382,7 @@ pub mod union_find {
         ///
         /// uf.union(nodea, nodee).unwrap();
         /// assert_eq!(uf.find(nodee).expect("Node should exist."), GroupRoot { ptr: nodeg, size: 7 }); // Group D is now added to group F:  {A, B, C, D, E, G, F}.
-        /// 
+        ///
         /// assert_eq!(uf.count_groups(), 1); // There is only one group in the UnionFind structure.
         /// ```
         pub fn union(

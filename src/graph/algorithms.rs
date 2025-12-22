@@ -212,23 +212,87 @@ pub mod union_find {
         /// If an element is equal to its own index, it is a root node.
         parent: Vec<StaticNodePtr>,
 
-        /// A vector where each element represents the size of the group rooted at the corresponding index.
-        /// Only valid for group roots.
+        /// A vector where each element represents the size of the component rooted at the corresponding index.
+        /// Only valid for component roots.
         group_size: Vec<usize>,
+
+        /// Cached count of the number of disjoint components.
+        /// Updated on union operations for O(1) count_groups().
+        num_components: usize,
 
         /// A phantom data field to ensure that the UnionFind structure is tied to a specific graph.
         /// This prevents modification of the graph while the UnionFind structure is in use.
         _graph_lock: PhantomData<&'graph ()>,
     }
 
-    /// A structure representing the root of a group and its size.
+    /// A structure representing a connected component and its size.
     #[derive(Copy, Clone, PartialEq, Eq, Debug, Hash)]
-    pub struct GroupRoot {
-        /// The index of the root of the group.
+    pub struct Component {
+        /// The index of the root of the component.
         pub ptr: StaticNodePtr,
 
-        /// The size of the group.
+        /// The size of the component.
         pub size: usize,
+    }
+
+    /// An iterator over the connected components in a UnionFind structure.
+    ///
+    /// This iterator lazily computes components, applying path compression
+    /// as it traverses the structure.
+    pub struct ComponentsIter<'a, 'graph> {
+        uf: &'a mut UnionFind<'graph>,
+        processed: Vec<bool>,
+        current_idx: usize,
+    }
+
+    impl<'a, 'graph> Iterator for ComponentsIter<'a, 'graph> {
+        type Item = (Component, Vec<StaticNodePtr>);
+
+        fn next(&mut self) -> Option<Self::Item> {
+            // Find the next unprocessed node
+            while self.current_idx < self.uf.parent.len() {
+                let node_idx = self.current_idx;
+                self.current_idx += 1;
+
+                if self.processed[node_idx] {
+                    continue;
+                }
+
+                // Mark this node as processed
+                self.processed[node_idx] = true;
+
+                // Find the root of this component (applies path compression)
+                let node_ptr = StaticNodePtr { idx: node_idx };
+                let root = self.uf.find(node_ptr)?;
+
+                // Collect all members of this component
+                let mut members = vec![node_ptr];
+
+                // Process remaining nodes to find other members of this component
+                for remaining_idx in self.current_idx..self.uf.parent.len() {
+                    if self.processed[remaining_idx] {
+                        continue;
+                    }
+
+                    let remaining_ptr = StaticNodePtr { idx: remaining_idx };
+                    let remaining_root = self.uf.find(remaining_ptr)?;
+
+                    if remaining_root.ptr == root.ptr {
+                        members.push(remaining_ptr);
+                        self.processed[remaining_idx] = true;
+                    }
+                }
+
+                return Some((root, members));
+            }
+
+            None
+        }
+
+        fn size_hint(&self) -> (usize, Option<usize>) {
+            let remaining = self.uf.num_components;
+            (remaining, Some(remaining))
+        }
     }
 
     impl<'graph> UnionFind<'graph> {
@@ -241,7 +305,7 @@ pub mod union_find {
         ///
         /// # Example
         ///```rust
-        /// use aoc_utils_rust::graph::algorithms::union_find::{GroupRoot, UnionFind};
+        /// use aoc_utils_rust::graph::algorithms::union_find::{Component, UnionFind};
         /// use aoc_utils_rust::graph::StaticGraph;
         ///
         /// let mut graph: StaticGraph<_, ()> = StaticGraph::new();
@@ -251,32 +315,33 @@ pub mod union_find {
         ///
         /// let mut uf = UnionFind::new(&graph);
         /// let root = uf.find(nodea).expect("Node should exist.");
-        /// assert_eq!(root, GroupRoot { ptr: nodea, size: 1 }); // Node 0 is its own root initially.
+        /// assert_eq!(root, Component { ptr: nodea, size: 1 }); // Node 0 is its own root initially.
         /// ```
         pub fn new<N, E>(static_graph: &'graph StaticGraph<N, E>) -> Self {
             let size = static_graph.nodes.len();
             Self {
                 parent: (0..size).map(|e| StaticNodePtr { idx: e }).collect(),
                 group_size: vec![1; size],
+                num_components: size,
                 _graph_lock: PhantomData,
             }
         }
 
-        /// Finds the root of the group containing the given node, with path compression.
+        /// Finds the root of the component containing the given node, with path compression.
         ///
         /// This method uses path compression to optimize future queries by making nodes point directly
-        /// to the root of their group.
+        /// to the root of their component.
         ///
         /// # Arguments
-        /// * `node` - A node whose group root is to be found.
+        /// * `node` - A node whose component root is to be found.
         ///
         /// # Returns
-        /// `Some(GroupRoot)` if the node is valid, and `None` if the node is invalid.
+        /// `Some(Component)` if the node is valid, and `None` if the node is invalid.
         ///
         /// # Example
         /// ```rust
         /// use aoc_utils_rust::graph::{EdgeRelationship, StaticGraph};
-        /// use aoc_utils_rust::graph::algorithms::union_find::{GroupRoot, UnionFind};
+        /// use aoc_utils_rust::graph::algorithms::union_find::{Component, UnionFind};
         ///
         /// let mut graph = StaticGraph::new();
         ///
@@ -294,23 +359,23 @@ pub mod union_find {
         ///
         /// let mut uf = UnionFind::new(&graph);
         ///
-        /// assert_eq!(uf.find(nodea).expect("Node should exist."), GroupRoot { ptr: nodea, size: 1 }); // Node A is its own root initially.
-        /// assert_eq!(uf.find(nodeb).expect("Node should exist."), GroupRoot { ptr: nodeb, size: 1 }); // Node B is its own root initially.
-        /// assert_eq!(uf.find(nodec).expect("Node should exist."), GroupRoot { ptr: nodec, size: 1 }); // Node C is its own root initially.
+        /// assert_eq!(uf.find(nodea).expect("Node should exist."), Component { ptr: nodea, size: 1 }); // Node A is its own root initially.
+        /// assert_eq!(uf.find(nodeb).expect("Node should exist."), Component { ptr: nodeb, size: 1 }); // Node B is its own root initially.
+        /// assert_eq!(uf.find(nodec).expect("Node should exist."), Component { ptr: nodec, size: 1 }); // Node C is its own root initially.
         ///
         /// uf.union(noded, nodee).unwrap();
         /// uf.union(nodeg, nodef).unwrap();
         ///
-        /// assert_eq!(uf.find(noded).expect("Node should exist."), GroupRoot { ptr: noded, size: 2 }); // Node D is the root of {D, E}.
-        /// assert_eq!(uf.find(nodee).expect("Node should exist."), GroupRoot { ptr: noded, size: 2 }); // Node E is in the group {D, E}.
+        /// assert_eq!(uf.find(noded).expect("Node should exist."), Component { ptr: noded, size: 2 }); // Node D is the root of {D, E}.
+        /// assert_eq!(uf.find(nodee).expect("Node should exist."), Component { ptr: noded, size: 2 }); // Node E is in the component {D, E}.
         ///
-        /// assert_eq!(uf.find(nodeg).expect("Node should exist."), GroupRoot { ptr: nodeg, size: 2 }); // Node G is the root of {G, F}.
-        /// assert_eq!(uf.find(nodef).expect("Node should exist."), GroupRoot { ptr: nodeg, size: 2 }); // Node F is in the group {G, F}.
+        /// assert_eq!(uf.find(nodeg).expect("Node should exist."), Component { ptr: nodeg, size: 2 }); // Node G is the root of {G, F}.
+        /// assert_eq!(uf.find(nodef).expect("Node should exist."), Component { ptr: nodeg, size: 2 }); // Node F is in the component {G, F}.
         /// ```
-        pub fn find(&mut self, node: StaticNodePtr) -> Option<GroupRoot> {
-            // If the node is its own parent, it is the root of the group.
+        pub fn find(&mut self, node: StaticNodePtr) -> Option<Component> {
+            // If the node is its own parent, it is the root of the component.
             if *self.parent.get(*node)? == node {
-                return Some(GroupRoot {
+                return Some(Component {
                     ptr: StaticNodePtr { idx: *node },
                     size: self.group_size[node.idx],
                 });
@@ -325,9 +390,9 @@ pub mod union_find {
             Some(parent)
         }
 
-        /// Unites the groups containing two nodes.
+        /// Unites the components containing two nodes.
         ///
-        /// This method merges the two sets into one. The smaller group is attached under the larger group,
+        /// This method merges the two sets into one. The smaller component is attached under the larger component,
         /// ensuring the resulting tree remains balanced.
         ///
         /// # Arguments
@@ -336,12 +401,12 @@ pub mod union_find {
         ///
         /// # Returns
         /// Returns `Ok(())` if the union is successful, or a `UnionFindError` if the nodes are already
-        /// in the same group or if the nodes belong to different graphs.
+        /// in the same component or if the nodes belong to different graphs.
         ///
         /// # Example
         /// ```rust
         /// use aoc_utils_rust::graph::{EdgeRelationship, StaticGraph};
-        /// use aoc_utils_rust::graph::algorithms::union_find::{GroupRoot, UnionFind, UnionFindError};
+        /// use aoc_utils_rust::graph::algorithms::union_find::{Component, UnionFind, UnionFindError};
         ///
         /// let mut graph = StaticGraph::<_, ()>::new();
         ///
@@ -356,34 +421,34 @@ pub mod union_find {
         /// let mut uf = UnionFind::new(&graph);
         /// assert_eq!(uf.count_groups(), 7);
         ///
-        /// assert_eq!(uf.find(nodea).expect("Node should exist."), GroupRoot { ptr: nodea, size: 1 }); // Node A is its own root initially.
-        /// assert_eq!(uf.find(nodeb).expect("Node should exist."), GroupRoot { ptr: nodeb, size: 1 }); // Node B is its own root initially.
-        /// assert_eq!(uf.find(nodec).expect("Node should exist."), GroupRoot { ptr: nodec, size: 1 }); // Node C is its own root initially.
+        /// assert_eq!(uf.find(nodea).expect("Node should exist."), Component { ptr: nodea, size: 1 }); // Node A is its own root initially.
+        /// assert_eq!(uf.find(nodeb).expect("Node should exist."), Component { ptr: nodeb, size: 1 }); // Node B is its own root initially.
+        /// assert_eq!(uf.find(nodec).expect("Node should exist."), Component { ptr: nodec, size: 1 }); // Node C is its own root initially.
         ///
         /// uf.union(noded, nodee).unwrap();
         /// uf.union(nodeg, nodef).unwrap();
         ///
-        /// assert_eq!(uf.find(noded).expect("Node should exist."), GroupRoot { ptr: noded, size: 2 }); // Node D is the root of {D, E}.
-        /// assert_eq!(uf.find(nodee).expect("Node should exist."), GroupRoot { ptr: noded, size: 2 }); // Node E is in the group {D, E}.
+        /// assert_eq!(uf.find(noded).expect("Node should exist."), Component { ptr: noded, size: 2 }); // Node D is the root of {D, E}.
+        /// assert_eq!(uf.find(nodee).expect("Node should exist."), Component { ptr: noded, size: 2 }); // Node E is in the component {D, E}.
         ///
-        /// assert_eq!(uf.find(nodeg).expect("Node should exist."), GroupRoot { ptr: nodeg, size: 2 }); // Node G is the root of {G, F}.
-        /// assert_eq!(uf.find(nodef).expect("Node should exist."), GroupRoot { ptr: nodeg, size: 2 }); // Node F is in the group {G, F}.
+        /// assert_eq!(uf.find(nodeg).expect("Node should exist."), Component { ptr: nodeg, size: 2 }); // Node G is the root of {G, F}.
+        /// assert_eq!(uf.find(nodef).expect("Node should exist."), Component { ptr: nodeg, size: 2 }); // Node F is in the component {G, F}.
         ///
         /// uf.union(nodea, nodef).unwrap();
-        /// assert_eq!(uf.find(nodea).expect("Node should exist."), GroupRoot { ptr: nodeg, size: 3 }); // Group A added is now in the group F: {A, G, F}.
+        /// assert_eq!(uf.find(nodea).expect("Node should exist."), Component { ptr: nodeg, size: 3 }); // Component A added is now in the component F: {A, G, F}.
         ///
         /// uf.union(nodeb, nodec).unwrap();
-        /// assert_eq!(uf.find(nodeb).expect("Node should exist."), GroupRoot { ptr: nodeb, size: 2 }); // Group C added is now added to group B:  {B, C}.
+        /// assert_eq!(uf.find(nodeb).expect("Node should exist."), Component { ptr: nodeb, size: 2 }); // Component C added is now added to component B:  {B, C}.
         ///
         /// uf.union(nodea, nodec).unwrap();
-        /// assert_eq!(uf.find(nodea).expect("Node should exist."), GroupRoot { ptr: nodeg, size: 5 }); // Group B is now added to group F:  {A, B, C, G, F}.
+        /// assert_eq!(uf.find(nodea).expect("Node should exist."), Component { ptr: nodeg, size: 5 }); // Component B is now added to component F:  {A, B, C, G, F}.
         ///
-        /// assert_eq!(uf.union(nodea, nodeb), Err(UnionFindError::NodesInSameGroup)); // Nodes are already in the same group.
+        /// assert_eq!(uf.union(nodea, nodeb), Err(UnionFindError::NodesInSameGroup)); // Nodes are already in the same component.
         ///
         /// uf.union(nodea, nodee).unwrap();
-        /// assert_eq!(uf.find(nodee).expect("Node should exist."), GroupRoot { ptr: nodeg, size: 7 }); // Group D is now added to group F:  {A, B, C, D, E, G, F}.
+        /// assert_eq!(uf.find(nodee).expect("Node should exist."), Component { ptr: nodeg, size: 7 }); // Component D is now added to component F:  {A, B, C, D, E, G, F}.
         ///
-        /// assert_eq!(uf.count_groups(), 1); // There is only one group in the UnionFind structure.
+        /// assert_eq!(uf.count_groups(), 1); // There is only one component in the UnionFind structure.
         /// ```
         pub fn union(
             &mut self,
@@ -406,21 +471,84 @@ pub mod union_find {
                     self.parent[*root_b.ptr] = root_a.ptr;
                     self.group_size[*root_a.ptr] += self.group_size[*root_b.ptr];
                 }
+
+                // Decrement component count since we merged two components
+                self.num_components -= 1;
                 Ok(())
             } else {
                 Err(UnionFindError::NodesNotFromSameGraph)
             }
         }
 
+        /// Returns the number of disjoint components in the union-find structure.
+        ///
+        /// This operation is O(1) as the count is cached and updated during union operations.
         pub fn count_groups(&self) -> usize {
-            self.parent
-                .iter()
-                .enumerate()
-                .filter(|(idx, &p)| *idx == *p)
-                .count()
+            self.num_components
         }
 
-        fn partition_into_groups(&self) -> Vec<(GroupRoot, Vec<StaticNodePtr>)> {
+        /// Returns an iterator over all connected components.
+        ///
+        /// The iterator lazily computes components and applies path compression
+        /// during traversal for improved performance.
+        ///
+        /// # Example
+        /// ```rust
+        /// use aoc_utils_rust::graph::StaticGraph;
+        /// use aoc_utils_rust::graph::algorithms::union_find::UnionFind;
+        ///
+        /// let mut graph = StaticGraph::<_, ()>::new();
+        /// let a = graph.add_node("A");
+        /// let b = graph.add_node("B");
+        /// let c = graph.add_node("C");
+        ///
+        /// let mut uf = UnionFind::new(&graph);
+        /// uf.union(a, b).unwrap();
+        ///
+        /// // Iterate over components
+        /// for (component, members) in uf.iter_components() {
+        ///     println!("Component root: {:?}, size: {}, members: {:?}",
+        ///              component.ptr, component.size, members);
+        /// }
+        /// ```
+        pub fn iter_components(&mut self) -> ComponentsIter<'_, 'graph> {
+            let size = self.parent.len();
+            ComponentsIter {
+                uf: self,
+                processed: vec![false; size],
+                current_idx: 0,
+            }
+        }
+
+        /// Returns all connected components as a vector.
+        ///
+        /// This is a convenience method that collects all components from the iterator.
+        /// For more flexibility (e.g., early termination), use `iter_components()` instead.
+        ///
+        /// # Example
+        /// ```rust
+        /// use aoc_utils_rust::graph::StaticGraph;
+        /// use aoc_utils_rust::graph::algorithms::union_find::UnionFind;
+        ///
+        /// let mut graph = StaticGraph::<_, ()>::new();
+        /// let a = graph.add_node("A");
+        /// let b = graph.add_node("B");
+        /// let c = graph.add_node("C");
+        ///
+        /// let mut uf = UnionFind::new(&graph);
+        /// uf.union(a, b).unwrap();
+        ///
+        /// let all_components = uf.components();
+        /// assert_eq!(all_components.len(), 2); // Two components: {A, B} and {C}
+        /// ```
+        pub fn components(&mut self) -> Vec<(Component, Vec<StaticNodePtr>)> {
+            self.iter_components().collect()
+        }
+    }
+
+    impl<'graph> Debug for UnionFind<'graph> {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            // Collect components without path compression (since Debug requires &self)
             let mut groups = HashMap::new();
 
             for (idx, &parent) in self.parent.iter().enumerate() {
@@ -442,38 +570,20 @@ pub mod union_find {
                 }
             }
 
-            groups
+            let components: Vec<_> = groups
                 .into_iter()
-                .map(|(root, kids)| {
-                    (
-                        GroupRoot {
-                            ptr: root,
-                            size: self.group_size[root.idx],
-                        },
-                        kids,
-                    )
+                .map(|(root, members)| {
+                    let component = Component {
+                        ptr: root,
+                        size: self.group_size[root.idx],
+                    };
+                    let member_indices: Vec<_> = members.iter().map(|&ptr| ptr.idx).collect();
+                    format!("Root: {:?} <== {:?}", *component.ptr, member_indices)
                 })
-                .collect()
-        }
-    }
+                .collect();
 
-    impl<'graph> Debug for UnionFind<'graph> {
-        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             f.debug_struct("UnionFind")
-                .field(
-                    "groups",
-                    &self
-                        .partition_into_groups()
-                        .iter()
-                        .map(|(root, kids)| {
-                            let (root, kids) = (
-                                *root.ptr,
-                                kids.iter().map(|&ptr| ptr.idx).collect::<Vec<_>>(),
-                            );
-                            format!("Root: {:?} <== {:?}", root, kids)
-                        })
-                        .collect::<Vec<_>>(),
-                )
+                .field("components", &components)
                 .finish()
         }
     }

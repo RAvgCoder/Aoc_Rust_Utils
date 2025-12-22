@@ -217,7 +217,7 @@ pub mod union_find {
         group_size: Vec<usize>,
 
         /// Cached count of the number of disjoint components.
-        /// Updated on union operations for O(1) count_groups().
+        /// Updated on union operations for O(1) num_components().
         num_components: usize,
 
         /// A phantom data field to ensure that the UnionFind structure is tied to a specific graph.
@@ -419,7 +419,7 @@ pub mod union_find {
         /// let nodeg = graph.add_node("g"); // idx: 6
         ///
         /// let mut uf = UnionFind::new(&graph);
-        /// assert_eq!(uf.count_groups(), 7);
+        /// assert_eq!(uf.num_components(), 7);
         ///
         /// assert_eq!(uf.find(nodea).expect("Node should exist."), Component { ptr: nodea, size: 1 }); // Node A is its own root initially.
         /// assert_eq!(uf.find(nodeb).expect("Node should exist."), Component { ptr: nodeb, size: 1 }); // Node B is its own root initially.
@@ -448,7 +448,7 @@ pub mod union_find {
         /// uf.union(nodea, nodee).unwrap();
         /// assert_eq!(uf.find(nodee).expect("Node should exist."), Component { ptr: nodeg, size: 7 }); // Component D is now added to component F:  {A, B, C, D, E, G, F}.
         ///
-        /// assert_eq!(uf.count_groups(), 1); // There is only one component in the UnionFind structure.
+        /// assert_eq!(uf.num_components(), 1); // There is only one component in the UnionFind structure.
         /// ```
         pub fn union(
             &mut self,
@@ -480,11 +480,119 @@ pub mod union_find {
             }
         }
 
+        /// Checks if two nodes are in the same connected component.
+        ///
+        /// # Arguments
+        /// * `node_a` - First node
+        /// * `node_b` - Second node
+        ///
+        /// # Returns
+        /// `Some(true)` if nodes are connected, `Some(false)` if not, `None` if either node is invalid.
+        ///
+        /// # Example
+        /// ```rust
+        /// use aoc_utils_rust::graph::StaticGraph;
+        /// use aoc_utils_rust::graph::algorithms::union_find::UnionFind;
+        ///
+        /// let mut graph = StaticGraph::<_, ()>::new();
+        /// let node_a = graph.add_node("A");
+        /// let node_b = graph.add_node("B");
+        /// let node_c = graph.add_node("C");
+        ///
+        /// let mut uf = UnionFind::new(&graph);
+        /// uf.union(node_a, node_b).unwrap();
+        ///
+        /// assert_eq!(uf.connected(node_a, node_b), Some(true));
+        /// assert_eq!(uf.connected(node_a, node_c), Some(false));
+        /// ```
+        pub fn connected(&mut self, node_a: StaticNodePtr, node_b: StaticNodePtr) -> Option<bool> {
+            let root_a = self.find(node_a)?;
+            let root_b = self.find(node_b)?;
+            Some(root_a.ptr == root_b.ptr)
+        }
+
         /// Returns the number of disjoint components in the union-find structure.
         ///
         /// This operation is O(1) as the count is cached and updated during union operations.
-        pub fn count_groups(&self) -> usize {
+        pub fn num_components(&self) -> usize {
             self.num_components
+        }
+
+        /// Returns the size of the component containing the given node.
+        ///
+        /// # Arguments
+        /// * `node` - The node whose component size to query
+        ///
+        /// # Returns
+        /// `Some(size)` if node is valid, `None` otherwise.
+        ///
+        /// # Example
+        /// ```rust
+        /// use aoc_utils_rust::graph::StaticGraph;
+        /// use aoc_utils_rust::graph::algorithms::union_find::UnionFind;
+        ///
+        /// let mut graph = StaticGraph::<_, ()>::new();
+        /// let node_a = graph.add_node("A");
+        /// let node_b = graph.add_node("B");
+        ///
+        /// let mut uf = UnionFind::new(&graph);
+        /// assert_eq!(uf.component_size(node_a), Some(1));
+        ///
+        /// uf.union(node_a, node_b).unwrap();
+        /// assert_eq!(uf.component_size(node_a), Some(2));
+        /// assert_eq!(uf.component_size(node_b), Some(2));
+        /// ```
+        pub fn component_size(&mut self, node: StaticNodePtr) -> Option<usize> {
+            let root = self.find(node)?;
+            Some(root.size)
+        }
+
+        /// Returns all nodes in the same component as the given node.
+        ///
+        /// # Arguments
+        /// * `node` - The node whose component members to retrieve
+        ///
+        /// # Returns
+        /// `Some(Vec<StaticNodePtr>)` containing all nodes in the component, `None` if node is invalid.
+        ///
+        /// # Performance Note
+        /// This method is O(n * α(n)) as it checks all nodes. For retrieving multiple components,
+        /// consider using `iter_components()` or `components()` which are more efficient.
+        ///
+        /// # Example
+        /// ```rust
+        /// use aoc_utils_rust::graph::StaticGraph;
+        /// use aoc_utils_rust::graph::algorithms::union_find::UnionFind;
+        ///
+        /// let mut graph = StaticGraph::<_, ()>::new();
+        /// let node_a = graph.add_node("A");
+        /// let node_b = graph.add_node("B");
+        /// let node_c = graph.add_node("C");
+        ///
+        /// let mut uf = UnionFind::new(&graph);
+        /// uf.union(node_a, node_b).unwrap();
+        /// uf.union(node_b, node_c).unwrap();
+        ///
+        /// let component = uf.get_component(node_a).unwrap();
+        /// assert_eq!(component.len(), 3);
+        /// assert!(component.contains(&node_a));
+        /// assert!(component.contains(&node_b));
+        /// assert!(component.contains(&node_c));
+        /// ```
+        pub fn get_component(&mut self, node: StaticNodePtr) -> Option<Vec<StaticNodePtr>> {
+            let target_root = self.find(node)?;
+
+            let mut members = Vec::new();
+            for idx in 0..self.parent.len() {
+                let current = StaticNodePtr { idx };
+                if let Some(root) = self.find(current) {
+                    if root.ptr == target_root.ptr {
+                        members.push(current);
+                    }
+                }
+            }
+
+            Some(members)
         }
 
         /// Returns an iterator over all connected components.

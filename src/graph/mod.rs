@@ -702,7 +702,7 @@ impl<N, E> StaticGraph<N, E> {
     /// assert_eq!(neighbours.len(), 1);
     /// assert_eq!(neighbours[0].0, node_b_ptr);
     /// ```
-    pub fn neighbours_iter(&self, node_index: StaticNodePtr) -> Neighbours<N, E> {
+    pub fn neighbours_iter(&self, node_index: StaticNodePtr) -> Neighbours<'_, N, E> {
         Neighbours {
             graph: self,
             edges: self.nodes[node_index.idx].first_edge.clone(),

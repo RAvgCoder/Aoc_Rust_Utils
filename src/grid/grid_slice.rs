@@ -210,6 +210,7 @@ impl InternalCoordinate {
         Self(translated)
     }
 
+    #[allow(dead_code)]
     fn to_slice_coordinate<G, T>(&self, grid_slice: &GridSlice<G, T>) -> Coordinate<usize>
     where
         G: Grid<T>,

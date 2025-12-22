@@ -10,7 +10,7 @@ fn main() {
     input.insert(4, vec![]);
 
     let mut graph = StaticGraph::<_, ()>::from(input);
-    let topologically_sorted = graph
+    let _topologically_sorted = graph
         .topological_sort()
         .unwrap()
         .iter()

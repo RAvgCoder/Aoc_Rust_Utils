@@ -583,6 +583,7 @@ pub mod union_find {
                 .collect();
 
             f.debug_struct("UnionFind")
+                .field("num_components", &self.num_components)
                 .field("components", &components)
                 .finish()
         }
